@@ -33,14 +33,19 @@ def db(sql: str, params=None):
 
 
 def db_batch(stmts: list):
-    """批量执行多条 SQL（无返回值）"""
+    """批量执行多条 SQL（事务性执行）"""
     async def _exec():
         client = create_client(url=TURSO_URL, auth_token=TURSO_TOKEN)
         try:
-            await client.batch(stmts)
+            results = await client.batch(stmts)
+            # 检查每个结果是否有错误
+            for i, rs in enumerate(results):
+                if hasattr(rs, 'error') and rs.error:
+                    print(f"[DB BATCH ERROR] idx={i}: {rs.error}")
+            return results
         finally:
             await client.close()
-    asyncio.run(_exec())
+    return asyncio.run(_exec())
 
 
 # ─── 启动初始化 ───────────────────────────────────────────
