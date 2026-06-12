@@ -2,565 +2,265 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>桶号管理 | Quản lý Barrel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title data-i18n="title">📦 桶号位置管理</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f2f5;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
-.header{background:linear-gradient(135deg,#1677ff,#0958d9);color:#fff;padding:12px 16px;text-align:center;font-size:16px;font-weight:700;letter-spacing:1px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
-.header-title{flex:1;text-align:center}
-.lang-btn{background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-weight:600}
-.lang-btn:active{background:rgba(255,255,255,.35)}
-.tabs{display:flex;background:#fff;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.tab{flex:1;padding:12px 4px;text-align:center;font-size:13px;border:none;background:none;color:#888;font-weight:600;cursor:pointer;border-bottom:3px solid transparent}
-.tab.active{color:#1677ff;border-bottom-color:#1677ff}
-.content{flex:1;overflow-y:auto;padding:12px;padding-bottom:16px}
-.panel{display:none}
-.panel.active{display:block}
-.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
-.card-title{font-size:14px;font-weight:700;margin-bottom:8px;color:#222}
-.mode-row{display:flex;gap:6px;margin-bottom:8px}
-.mode-btn{flex:1;padding:8px;font-size:13px;border:1px solid #d9d9d9;border-radius:8px;background:#fff;cursor:pointer;text-align:center;font-weight:500}
-.mode-btn.active{background:#1677ff;color:#fff;border-color:#1677ff}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:#1d1d1f;min-height:100dvh;-webkit-tap-highlight-color:transparent}
+.container{max-width:600px;margin:0 auto;padding:12px}
 
-/* Scan zone */
-.scan-zone{background:#fff;border:3px dashed #1677ff;border-radius:14px;padding:20px 16px;text-align:center;margin-bottom:10px;transition:.15s}
-.scan-zone.flash{background:#f6ffed;border-color:#52c41a}
-.scan-zone .scan-icon{font-size:40px;margin-bottom:8px}
-.scan-zone .scan-status{font-size:13px;color:#888;margin-bottom:6px}
-.scan-zone .last-scan{font-size:22px;font-weight:800;color:#1677ff;min-height:30px;word-break:break-all}
-.scan-zone .last-scan.empty{color:#ccc;font-size:16px;font-weight:400}
-.scan-input-real{width:100%;padding:14px;font-size:18px;border:2px solid #d9d9d9;border-radius:10px;text-align:center;background:#fafafa;margin-bottom:4px}
-.scan-input-real:focus{outline:none;border-color:#1677ff;background:#fff}
-.scan-hint{font-size:11px;color:#bbb}
+/* Header */
+.header{text-align:center;padding:16px 0 8px}
+.header h1{font-size:20px;font-weight:700;color:#1a1a2e}
+.header .sub{font-size:13px;color:#8c8c8c;margin-top:4px}
+.lang-switch{position:absolute;top:12px;right:16px;display:flex;gap:4px}
+.lang-btn{background:transparent;border:1px solid #d9d9d9;border-radius:6px;padding:4px 10px;font-size:13px;cursor:pointer;color:#595959}
+.lang-btn.active{background:#1677ff;color:#fff;border-color:#1677ff}
 
-/* Batch */
-.batch-section{margin-bottom:10px}
-.batch-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.batch-count{font-size:13px;color:#888;font-weight:600}
-.batch-list{max-height:160px;overflow-y:auto}
-.batch-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#f6f8fa;border-radius:8px;margin-bottom:3px;font-size:13px}
-.batch-item .del{color:#ff4d4f;font-size:18px;cursor:pointer;padding:2px 6px;border:none;background:none}
+/* Card */
+.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 
-/* Location / Destination grids */
-.loc-section{margin-bottom:10px}
-.loc-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:8px}
-.loc-btn{padding:10px 2px;font-size:12px;border:2px solid #e8e8e8;border-radius:8px;background:#fff;cursor:pointer;text-align:center;font-weight:500}
-.loc-btn:active{transform:scale(.94)}
-.loc-btn.selected{background:#1677ff;color:#fff;border-color:#1677ff}
-.loc-label{font-size:12px;font-weight:700;color:#888;margin-bottom:4px}
+/* Scanner */
+.scanner-input{width:100%;padding:14px 16px;font-size:18px;border:2px solid #e8e8e8;border-radius:10px;outline:none;text-align:center;letter-spacing:1px;transition:border-color .2s;background:#fafafa}
+.scanner-input:focus{border-color:#1677ff;background:#fff}
+.scan-hint{text-align:center;color:#8c8c8c;font-size:12px;margin-top:6px}
 
-.btn{display:block;width:100%;padding:13px;font-size:15px;border:none;border-radius:10px;cursor:pointer;font-weight:600;margin-bottom:8px;-webkit-tap-highlight-color:transparent}
-.btn:active{transform:scale(.97)}
+/* Location Grid */
+.loc-section{margin-top:12px;display:none}
+.loc-section.show{display:block}
+.loc-section .barrel-info{text-align:center;font-size:18px;font-weight:700;color:#1677ff;margin-bottom:4px}
+.loc-section .barrel-info.existing{color:#d46b08}
+.loc-section .barrel-detail{text-align:center;font-size:13px;color:#8c8c8c;margin-bottom:10px}
+.loc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:6px;margin-bottom:8px}
+.loc-group-label{grid-column:1/-1;font-size:13px;font-weight:600;color:#595959;margin:4px 0 2px;padding-top:4px;border-top:1px dashed #f0f0f0}
+.loc-btn{padding:10px 6px;font-size:13px;font-weight:600;border:2px solid #e8e8e8;border-radius:8px;background:#fff;color:#262626;cursor:pointer;transition:all .15s;text-align:center;white-space:nowrap}
+.loc-btn:active,.loc-btn.selected{background:#e6f4ff;border-color:#1677ff;color:#1677ff}
+.loc-btn.special{background:#f9f0ff;border-color:#d3adf7;color:#722ed1;font-size:11px;line-height:1.3}
+.loc-btn.special.selected{background:#d3adf7;color:#531dab}
+.confirm-row{display:flex;gap:8px;margin-top:8px}
+.btn{flex:1;padding:12px;font-size:15px;font-weight:600;border:none;border-radius:10px;cursor:pointer;transition:all .15s}
+.btn:disabled{opacity:.4;cursor:not-allowed}
 .btn-primary{background:#1677ff;color:#fff}
-.btn-success{background:#52c41a;color:#fff}
 .btn-danger{background:#ff4d4f;color:#fff}
-.btn-warning{background:#fa8c16;color:#fff}
-.btn-default{background:#f5f5f5;color:#333;border:1px solid #e0e0e0}
-.btn-sm{padding:8px 14px;font-size:13px;width:auto;display:inline-block}
-.btn:disabled{opacity:.4;pointer-events:none}
+.btn-default{background:#f5f5f5;color:#595959}
 
-.result{padding:10px 12px;border-radius:8px;margin:8px 0;font-size:13px;line-height:1.5}
-.result.success{background:#f6ffed;border:1px solid #b7eb8f;color:#389e0d}
-.result.error{background:#fff2f0;border:1px solid #ffccc7;color:#cf1322}
-.result.info{background:#e6f4ff;border:1px solid #91caff;color:#0958d9}
+/* Section title */
+.sec-title{font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 
-table{width:100%;border-collapse:collapse;font-size:12px}
-th,td{padding:7px 5px;text-align:left;border-bottom:1px solid #f0f0f0}
-th{background:#fafafa;font-weight:600;color:#888;font-size:11px}
-.info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
-.info-row:last-child{border-bottom:none}
-.info-label{color:#999}
-.info-value{color:#222;font-weight:600;text-align:right}
-.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
-.badge-in{background:#f6ffed;color:#52c41a}
-.badge-out{background:#fff2f0;color:#ff4d4f}
-.badge-rg{background:#fff7e6;color:#d46b08}
-.badge-fj{background:#e6f4ff;color:#0958d9}
-.beep-dot{display:inline-block;width:8px;height:8px;background:#52c41a;border-radius:50%;margin-right:4px;animation:pulse .8s ease-out}
-@keyframes pulse{0%{transform:scale(1);opacity:1}100%{transform:scale(2);opacity:0}}
+/* Search */
+.search-row{display:flex;gap:8px;margin-bottom:10px}
+.search-row input{flex:1;padding:10px 14px;font-size:15px;border:2px solid #e8e8e8;border-radius:10px;outline:none}
+.search-row input:focus{border-color:#1677ff}
+.search-row button{padding:10px 16px;font-size:14px;border:none;border-radius:10px;background:#1677ff;color:#fff;cursor:pointer;font-weight:600}
+.export-row{display:flex;gap:8px;margin-bottom:8px}
+.export-row button{padding:8px 14px;font-size:13px;border:none;border-radius:8px;background:#f5f5f5;color:#595959;cursor:pointer;font-weight:500}
 
+/* Results table */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid #f0f0f0}
+th{background:#fafafa;font-weight:600;color:#595959;position:sticky;top:0;white-space:nowrap}
+.result-count{text-align:center;color:#8c8c8c;font-size:12px;margin-top:4px}
+
+/* Delete */
+.delete-input{width:100%;padding:12px 14px;font-size:16px;border:2px solid #ffccc7;border-radius:10px;outline:none;text-align:center;margin-bottom:8px;letter-spacing:1px}
+.delete-input:focus{border-color:#ff4d4f}
+.delete-info{text-align:center;font-size:14px;margin-bottom:8px;color:#595959}
+.delete-info .barrel-no{font-weight:700;color:#ff4d4f}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;color:#fff;z-index:999;animation:toastIn .3s ease;pointer-events:none;white-space:nowrap}
+.toast.success{background:#52c41a}
+.toast.error{background:#ff4d4f}
+.toast.info{background:#1677ff}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* Zone tag in table */
 .zone-tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;margin-left:4px}
-.zone-tag.rg{background:#fff7e6;color:#d46b08}
-.zone-tag.fj{background:#e6f4ff;color:#0958d9}
-.zone-tag.a2d{background:#f0e6ff;color:#722ed1}
+.zone-tag.special{background:#f0e6ff;color:#722ed1}
+
+/* Section divider */
+.divider{height:1px;background:#f0f0f0;margin:16px 0}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <button class="lang-btn" onclick="switchLang()" id="lang-btn">🇻🇳 Tiếng Việt</button>
-  <span class="header-title" id="header-title">🏭 生管部在制品桶号管理</span>
-  <span style="width:70px"></span>
-</div>
-<div class="tabs">
-  <button class="tab active" data-i18n="tab_inbound" onclick="switchTab('inbound')">📥 入库</button>
-  <button class="tab" data-i18n="tab_outbound" onclick="switchTab('outbound')">📤 出库</button>
-  <button class="tab" data-i18n="tab_query" onclick="switchTab('query')">🔍 查询</button>
-  <button class="tab" data-i18n="tab_logs" onclick="switchTab('logs')">📋 记录</button>
-</div>
-<div class="content">
-
-<!-- ═══════════ 入库 ═══════════ -->
-<div id="panel-inbound" class="panel active">
-  <div class="mode-row">
-    <button class="mode-btn active" data-i18n="mode_single" onclick="setInboundMode('single')">🔹 单桶</button>
-    <button class="mode-btn" data-i18n="mode_batch" onclick="setInboundMode('batch')">🔶 批量</button>
-  </div>
-
-  <div class="scan-zone" id="inbound-scan-zone">
-    <div class="scan-icon">📷</div>
-    <div class="scan-status" id="inbound-scan-status" data-i18n="wait_scan">等待扫码...</div>
-    <div class="last-scan empty" id="inbound-last-scan">--</div>
-    <input type="text" class="scan-input-real" id="inbound-scanner" data-i18n-placeholder="scan_placeholder" placeholder="扫码枪扫这里..." autocomplete="off">
-    <div class="scan-hint" data-i18n="scan_hint">扫码后自动确认，无需点击</div>
-  </div>
-
-  <!-- 批量列表 -->
-  <div class="card batch-section" id="inbound-batch-card" style="display:none">
-    <div class="batch-header">
-      <span class="batch-count" id="inbound-batch-count">已扫 0 桶</span>
-      <button class="btn-default btn-sm" data-i18n="clear" onclick="clearInboundBatch()">清空</button>
-    </div>
-    <div class="batch-list" id="inbound-batch-list"></div>
-  </div>
-
-  <!-- 单桶入库：储位选择 -->
-  <div class="card loc-section" id="inbound-single-loc" style="display:none">
-    <div class="card-title">📍 <span id="inbound-single-barrel" style="color:#1677ff">--</span> → <span data-i18n="pick_location">选择储位</span></div>
-    <div class="loc-label" data-i18n="loc_a2_label">📦 入库储区 A2 (01~99)</div>
-    <div class="loc-grid" id="loc-inbound-single"></div>
-    <button class="btn btn-success" id="btn-inbound-single" disabled onclick="confirmSingleInbound()">✅ <span data-i18n="confirm_inbound">确认入库</span></button>
-    <button class="btn btn-default" data-i18n="cancel" onclick="cancelSingleInbound()">取消</button>
-  </div>
-
-  <!-- 批量入库：储位选择 -->
-  <div id="inbound-batch-confirm" style="display:none">
-    <div class="card loc-section">
-      <div class="card-title" data-i18n="batch_inbound_title">📍 全部入库到哪个储位？</div>
-      <div class="loc-label" data-i18n="loc_a2_label">📦 入库储区 A2 (01~99)</div>
-      <div class="loc-grid" id="loc-inbound-batch"></div>
-      <button class="btn btn-success" id="btn-inbound-batch" disabled onclick="confirmBatchInbound()">✅ <span data-i18n="batch_inbound_btn">全部入库</span></button>
-      <button class="btn btn-default" data-i18n="cancel" onclick="cancelBatchInbound()">取消</button>
-    </div>
-  </div>
-
-  <div id="inbound-msg"></div>
+<div class="lang-switch">
+  <button class="lang-btn active" onclick="setLang('zh')">中文</button>
+  <button class="lang-btn" onclick="setLang('vi')">VN</button>
 </div>
 
-<!-- ═══════════ 出库 ═══════════ -->
-<div id="panel-outbound" class="panel">
-  <div class="mode-row">
-    <button class="mode-btn active" data-i18n="mode_single" onclick="setOutboundMode('single')">🔹 单桶</button>
-    <button class="mode-btn" data-i18n="mode_batch" onclick="setOutboundMode('batch')">🔶 批量</button>
+<div class="container">
+  <!-- Title -->
+  <div class="header">
+    <h1 data-i18n="title">📦 桶号位置管理</h1>
+    <div class="sub" data-i18n="subtitle">扫码录入 · 快速查询 · 一键导出</div>
   </div>
 
-  <div class="scan-zone" id="outbound-scan-zone">
-    <div class="scan-icon">📷</div>
-    <div class="scan-status" id="outbound-scan-status" data-i18n="wait_scan">等待扫码...</div>
-    <div class="last-scan empty" id="outbound-last-scan">--</div>
-    <input type="text" class="scan-input-real" id="outbound-scanner" data-i18n-placeholder="scan_placeholder" placeholder="扫码枪扫这里..." autocomplete="off">
-    <div class="scan-hint" data-i18n="scan_hint">扫码后自动确认，无需点击</div>
-  </div>
-
-  <!-- 单桶出库：显示储位 + 选目的地 -->
-  <div class="card" id="outbound-single-card" style="display:none">
-    <div style="text-align:center;padding:4px 0 8px">
-      <div style="font-size:20px;font-weight:800;color:#1677ff" id="outbound-single-barrel">--</div>
-      <div style="font-size:13px;color:#888;margin:4px 0" data-i18n="current_location">当前储位</div>
-      <div style="font-size:20px;font-weight:700;color:#52c41a" id="outbound-single-from">--</div>
-    </div>
-    <div class="card-title" data-i18n="pick_dest">🚚 选择出库目的地</div>
-    <div class="loc-label" data-i18n="zone_rg">👤 人工区</div>
-    <div class="loc-grid" id="dest-rg-single"></div>
-    <div class="loc-label" data-i18n="zone_fj">🤖 自动分检区</div>
-    <div class="loc-grid" id="dest-fj-single"></div>
-    <div class="loc-label" data-i18n="zone_a2_99">🤖 自动分检区 (A2-99)</div>
-    <div id="dest-a2-99-single"></div>
-    <div class="loc-label" data-i18n="zone_a2_98">🔩 自动分检螺帽区 (A2-98)</div>
-    <div id="dest-a2-98-single"></div>
-    <button class="btn btn-default" data-i18n="cancel" onclick="cancelOutboundSingle()">取消</button>
-  </div>
-
-  <!-- 批量出库列表 -->
-  <div class="card batch-section" id="outbound-batch-card" style="display:none">
-    <div class="batch-header">
-      <span class="batch-count" id="outbound-batch-count">已扫 0 桶</span>
-      <button class="btn-default btn-sm" data-i18n="clear" onclick="clearOutboundBatch()">清空</button>
-    </div>
-    <div class="batch-list" id="outbound-batch-list"></div>
-  </div>
-
-  <!-- 批量出库：目的地选择 -->
-  <div id="outbound-batch-dest" style="display:none">
-    <div class="card">
-      <div class="card-title" data-i18n="batch_outbound_title">🚚 全部出库到哪个目的地？</div>
-      <div class="loc-label" data-i18n="zone_rg">👤 人工区</div>
-      <div class="loc-grid" id="dest-rg-batch"></div>
-      <div class="loc-label" data-i18n="zone_fj">🤖 自动分检区</div>
-      <div class="loc-grid" id="dest-fj-batch"></div>
-      <div class="loc-label" data-i18n="zone_a2_99">🤖 自动分检区 (A2-99)</div>
-      <div id="dest-a2-99-batch"></div>
-      <div class="loc-label" data-i18n="zone_a2_98">🔩 自动分检螺帽区 (A2-98)</div>
-      <div id="dest-a2-98-batch"></div>
-      <button class="btn btn-danger" onclick="confirmBatchOutbound()">📤 <span data-i18n="batch_outbound_btn">全部出库</span></button>
-      <button class="btn btn-default" data-i18n="cancel" onclick="cancelBatchOutbound()">取消</button>
-    </div>
-  </div>
-
-  <div id="outbound-msg"></div>
-</div>
-
-<!-- ═══════════ 查询 ═══════════ -->
-<div id="panel-query" class="panel">
+  <!-- Main Scanner -->
   <div class="card">
-    <div class="card-title" data-i18n="query_title">🔍 库存查询</div>
-    <div style="display:flex;gap:6px;margin-bottom:8px">
-      <input type="text" class="scan-input-real" id="query-input" data-i18n-placeholder="query_placeholder" placeholder="输入桶号或储位，回车查询" style="margin-bottom:0;flex:1">
-      <button class="btn btn-primary btn-sm" onclick="searchInventory()" style="width:auto;margin-bottom:0;padding:12px 16px;white-space:nowrap">🔍 <span data-i18n="query_btn">搜索</span></button>
-    </div>
-    <div style="display:flex;gap:6px">
-      <button class="btn btn-default btn-sm" style="flex:1" onclick="loadAllInventory()">📦 <span data-i18n="all_inventory">全部在库</span></button>
-      <a class="btn btn-warning btn-sm" href="/api/export" style="flex:1;text-decoration:none;text-align:center" data-i18n="export_excel">📥 导出 Excel</a>
-    </div>
-    <div id="query-result"></div>
-  </div>
+    <input type="text" class="scanner-input" id="main-scanner" 
+      data-i18n-placeholder="scan_placeholder"
+      placeholder="🔍 扫码或输入桶号，按回车"
+      autocomplete="off" autocorrect="off" autocapitalize="characters">
+    <div class="scan-hint" data-i18n="scan_hint">扫码枪扫描后自动确认，或手动输入桶号按回车</div>
 
-  <div class="card">
-    <div class="card-title" data-i18n="delete_title">🗑 删除桶号</div>
-    <div class="mode-row">
-      <button class="mode-btn active" data-i18n="mode_single" onclick="setDeleteMode('single')">🔹 单桶</button>
-      <button class="mode-btn" data-i18n="mode_batch" onclick="setDeleteMode('batch')">🔶 批量</button>
-    </div>
-    <input type="text" class="scan-input-real" id="delete-input" data-i18n-placeholder="delete_placeholder" placeholder="扫码或输入桶号，回车确认" style="margin-bottom:8px">
-    <!-- 单桶确认 -->
-    <div id="delete-single-confirm" style="display:none">
-      <div class="result info" id="delete-single-info"></div>
-      <button class="btn btn-danger" data-i18n="confirm_delete_one" onclick="confirmDeleteSingle()">⚠️ 确认删除此桶号</button>
-      <button class="btn btn-default" data-i18n="cancel" onclick="cancelDelete()">取消</button>
-    </div>
-    <!-- 批量列表 -->
-    <div id="delete-batch-section" style="display:none">
-      <div class="batch-header">
-        <span class="batch-count" id="delete-batch-count">已选 0 桶</span>
-        <button class="btn-default btn-sm" data-i18n="clear" onclick="clearDeleteBatch()">清空</button>
+    <!-- Location picker (shown after scan) -->
+    <div class="loc-section" id="loc-picker">
+      <div class="barrel-info" id="loc-barrel-no"></div>
+      <div class="barrel-detail" id="loc-barrel-detail"></div>
+      <div class="loc-grid" id="loc-grid"></div>
+      <div class="confirm-row">
+        <button class="btn btn-primary" id="btn-confirm" disabled data-i18n="confirm_save">✅ 确认保存</button>
+        <button class="btn btn-default" id="btn-cancel" data-i18n="cancel">取消</button>
       </div>
-      <div class="batch-list" id="delete-batch-list"></div>
-      <button class="btn btn-danger" data-i18n="confirm_delete_all" onclick="confirmDeleteBatch()">⚠️ 确认删除全部</button>
     </div>
-    <div id="delete-msg"></div>
   </div>
-</div>
 
-<!-- ═══════════ 记录 ═══════════ -->
-<div id="panel-logs" class="panel">
+  <!-- Query & Export -->
   <div class="card">
-    <div class="card-title" data-i18n="logs_title">📋 最近操作记录</div>
-    <div id="logs-content"></div>
+    <div class="sec-title" data-i18n="query_title">🔍 库存查询</div>
+    <div class="search-row">
+      <input type="text" id="query-input" data-i18n-placeholder="query_placeholder"
+        placeholder="输入桶号或储位，回车查询">
+      <button onclick="doQuery()" data-i18n="query_btn">搜索</button>
+    </div>
+    <div class="export-row">
+      <button onclick="showAll()" data-i18n="all_inventory">📋 全部在库</button>
+      <button onclick="exportExcel()" data-i18n="export_excel">📥 导出 Excel</button>
+    </div>
+    <div class="table-wrap" id="query-results" style="display:none">
+      <table id="results-table">
+        <thead><tr>
+          <th data-i18n="th_barrel">桶号</th>
+          <th data-i18n="th_location">当前位置</th>
+          <th data-i18n="th_time">更新时间</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="result-count" id="result-count"></div>
+    </div>
   </div>
-</div>
 
+  <!-- Delete -->
+  <div class="card">
+    <div class="sec-title" data-i18n="delete_title">🗑 删除桶号</div>
+    <input type="text" class="delete-input" id="delete-scanner"
+      data-i18n-placeholder="delete_placeholder"
+      placeholder="扫码或输入桶号，回车确认删除"
+      autocomplete="off" autocorrect="off" autocapitalize="characters">
+    <div class="delete-info" id="delete-info" style="display:none">
+      <span data-i18n="delete_confirm_prefix">确认删除</span>
+      <span class="barrel-no" id="delete-barrel-no"></span>
+      <span data-i18n="delete_confirm_suffix">？此操作不可撤销。</span>
+    </div>
+    <button class="btn btn-danger" id="btn-delete-confirm" style="display:none;width:100%"
+      data-i18n="confirm_delete">⚠️ 确认删除</button>
+  </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════
-// 多语言支持 / Hỗ trợ đa ngôn ngữ
-// ═══════════════════════════════════════════════════════
-
+// ─── I18N ────────────────────────────────────────────────────────────────
 const I18N = {
   zh: {
-    header_title: '🏭 生管部在制品桶号管理',
-    tab_inbound: '📥 入库',
-    tab_outbound: '📤 出库',
-    tab_query: '🔍 查询',
-    tab_logs: '📋 记录',
-    mode_single: '🔹 单桶',
-    mode_batch: '🔶 批量',
-    wait_scan: '等待扫码...',
-    scan_placeholder: '扫码枪扫这里...',
-    scan_hint: '扫码后自动确认，无需点击',
-    scanned: '已扫描',
-    scanned_batch: '已扫 # 桶',
-    clear: '清空',
-    pick_location: '选择储位',
-    loc_a2_label: '📦 入库储区 A2 (01~97)',
-    zone_a2_99: '🤖 自动分检区 (A2-99)',
-    zone_a2_98: '🔩 自动分检螺帽区 (A2-98)',
-    confirm_inbound: '确认入库',
+    title: '📦 桶号位置管理',
+    subtitle: '扫码录入 · 快速查询 · 一键导出',
+    scan_placeholder: '🔍 扫码或输入桶号，按回车',
+    scan_hint: '扫码枪扫描后自动确认，或手动输入桶号按回车',
+    confirm_save: '✅ 确认保存',
     cancel: '取消',
-    batch_inbound_title: '📍 全部入库到哪个储位？',
-    batch_inbound_btn: '全部入库',
-    pick_loc_btn: '📍 选择储位并入库',
-    current_location: '当前储位',
-    pick_dest: '🚚 选择出库目的地',
-    zone_rg: '👤 人工区',
-    zone_fj: '🤖 自动分检区',
-    batch_outbound_title: '🚚 全部出库到哪个目的地？',
-    batch_outbound_btn: '全部出库',
-    pick_dest_btn: '🚚 选择目的地并出库',
     query_title: '🔍 库存查询',
     query_placeholder: '输入桶号或储位，回车查询',
     query_btn: '搜索',
-    all_inventory: '全部在库',
-    export_excel: '导出 Excel',
+    all_inventory: '📋 全部在库',
+    export_excel: '📥 导出 Excel',
+    th_barrel: '桶号',
+    th_location: '当前位置',
+    th_time: '更新时间',
     delete_title: '🗑 删除桶号',
-    delete_placeholder: '扫码或输入桶号，回车确认',
-    confirm_delete_one: '⚠️ 确认删除此桶号',
-    confirm_delete_all: '⚠️ 确认删除全部',
-    selected_batch: '已选 # 桶',
-    logs_title: '📋 最近操作记录',
-    no_records: '暂无操作记录',
-    no_inventory: '📭 暂无在库记录',
-    not_found: '未找到',
-    total_in_stock: '共 # 桶在库',
-    barrel_no: '桶号',
-    location: '储位',
-    time: '时间',
-    op_time: '时间',
-    action: '操作',
-    dest: '目的地',
-    status: '状态',
-    update_time: '更新时间',
-    status_in: '在库',
-    status_out: '已出库',
-    action_inbound: '入库',
-    action_outbound: '出库',
-    action_delete: '删除',
-    not_in_stock: '不在库中',
-    already_in: '已在',
-    inbound_ok: '桶号 # 已入库 → #',
-    outbound_ok: '桶号 # 已从 # 出库',
-    outbound_ok_dest: '桶号 # 已从 # 出库 → #',
-    not_in_stock_msg: '桶号 # 不在库中，无法出库',
-    already_in_msg: '桶号 # 已在 #，请先出库再入库',
-    confirm_delete: '⚠️ 确定要删除桶号 # 吗？此操作不可恢复！',
-    confirm_delete_batch: '⚠️ 确定要删除 # 个桶号吗？此操作不可恢复！',
-    batch_inbound_ok: '✅ 入库 # 桶 → #',
-    batch_inbound_skip: '⚠️ 跳过:',
-    batch_outbound_ok: '✅ 出库 # 桶 → #',
-    batch_outbound_not_found: '⚠️ 不在库:',
-    batch_delete_ok: '已删除 # 桶',
-    batch_delete_not_found: '# 桶不存在',
-    deleted_ok: '已删除',
-    does_not_exist: '不存在',
-    barrel_exists: '无此桶号',
-    lang_switch: '🇻🇳 Tiếng Việt',
-    match_results: '🔍 "#" 匹配 # 条',
-    goto: '→',
-    barrel: '桶',
-    from: '来自',
+    delete_placeholder: '扫码或输入桶号，回车确认删除',
+    delete_confirm_prefix: '确认删除',
+    delete_confirm_suffix: '？此操作不可撤销。',
+    confirm_delete: '⚠️ 确认删除',
+    new_barrel: '新桶号，请选择位置',
+    current_location: '当前在',
+    click_to_move: '点击其他位置可移动',
+    a2_storage: '📦 储区 A2 (01~97)',
+    a2_99_label: '🤖 自动分检区',
+    a2_98_label: '🔩 自动分检螺帽区',
+    saved: '✅ # 已保存到 #',
+    already_at: '⚠️ 桶号 # 已在 #',
+    deleted: '🗑 桶号 # 已删除',
+    not_found: '未找到桶号 #',
+    no_results: '暂无库存记录',
+    export_success: '📥 Excel 已导出',
+    query_count: '共 # 条记录',
+    confirm_delete_msg: '🗑 已删除桶号 #（原位置：#）',
   },
   vi: {
-    header_title: '🏭 Quản lý Barrel Xưởng',
-    tab_inbound: '📥 Nhập kho',
-    tab_outbound: '📤 Xuất kho',
-    tab_query: '🔍 Tra cứu',
-    tab_logs: '📋 Nhật ký',
-    mode_single: '🔹 Đơn lẻ',
-    mode_batch: '🔶 Hàng loạt',
-    wait_scan: 'Đang chờ quét...',
-    scan_placeholder: 'Quét mã tại đây...',
-    scan_hint: 'Quét xong tự xác nhận',
-    scanned: 'Đã quét',
-    scanned_batch: 'Đã quét # thùng',
-    clear: 'Xóa DS',
-    pick_location: 'Chọn vị trí',
-    loc_a2_label: '📦 Vị trí nhập A2 (01~97)',
-    zone_a2_99: '🤖 Khu phân loại tự động (A2-99)',
-    zone_a2_98: '🔩 Khu phân loại đai ốc (A2-98)',
-    confirm_inbound: 'Xác nhận nhập kho',
+    title: '📦 Quản lý vị trí thùng',
+    subtitle: 'Quét mã · Tra cứu · Xuất Excel',
+    scan_placeholder: '🔍 Quét hoặc nhập mã thùng, Enter',
+    scan_hint: 'Máy quét tự động xác nhận, hoặc nhập mã thùng bằng tay',
+    confirm_save: '✅ Xác nhận lưu',
     cancel: 'Hủy',
-    batch_inbound_title: '📍 Nhập tất cả vào vị trí nào?',
-    batch_inbound_btn: 'Nhập tất cả',
-    pick_loc_btn: '📍 Chọn vị trí và nhập kho',
-    current_location: 'Vị trí hiện tại',
-    pick_dest: '🚚 Chọn nơi xuất kho',
-    zone_rg: '👤 Khu thủ công',
-    zone_fj: '🤖 Khu tự động',
-    batch_outbound_title: '🚚 Xuất tất cả đến đâu?',
-    batch_outbound_btn: 'Xuất tất cả',
-    pick_dest_btn: '🚚 Chọn nơi đến và xuất kho',
-    query_title: '🔍 Tra cứu tồn kho',
+    query_title: '🔍 Tra cứu',
     query_placeholder: 'Nhập mã thùng hoặc vị trí, Enter',
     query_btn: 'Tìm',
-    all_inventory: 'Tất cả trong kho',
-    export_excel: 'Xuất Excel',
-    delete_title: '🗑 Xóa mã thùng',
-    delete_placeholder: 'Quét/Nhập mã thùng, Enter',
-    confirm_delete_one: '⚠️ Xác nhận xóa mã thùng này',
-    confirm_delete_all: '⚠️ Xác nhận xóa tất cả',
-    selected_batch: 'Đã chọn # thùng',
-    logs_title: '📋 Nhật ký thao tác',
-    no_records: 'Chưa có thao tác nào',
-    no_inventory: '📭 Chưa có barrel trong kho',
-    not_found: 'Không tìm thấy',
-    total_in_stock: 'Tổng # thùng trong kho',
-    barrel_no: 'Mã thùng',
-    location: 'Vị trí',
-    time: 'Thời gian',
-    op_time: 'Thời gian',
-    action: 'Thao tác',
-    dest: 'Nơi đến',
-    status: 'Trạng thái',
-    update_time: 'Cập nhật',
-    status_in: 'Trong kho',
-    status_out: 'Đã xuất',
-    action_inbound: 'Nhập kho',
-    action_outbound: 'Xuất kho',
-    action_delete: 'Xóa',
-    not_in_stock: 'Không có trong kho',
-    already_in: 'đã ở',
-    inbound_ok: 'Thùng # đã nhập kho → #',
-    outbound_ok: 'Thùng # đã xuất từ #',
-    outbound_ok_dest: 'Thùng # đã xuất từ # → #',
-    not_in_stock_msg: 'Thùng # không có trong kho!',
-    already_in_msg: 'Thùng # đã ở #, hãy xuất kho trước',
-    confirm_delete: '⚠️ Xóa thùng #? Không thể khôi phục!',
-    confirm_delete_batch: '⚠️ Xóa # thùng? Không thể khôi phục!',
-    batch_inbound_ok: '✅ Đã nhập # thùng → #',
-    batch_inbound_skip: '⚠️ Bỏ qua:',
-    batch_outbound_ok: '✅ Đã xuất # thùng → #',
-    batch_outbound_not_found: '⚠️ Không có:',
-    batch_delete_ok: 'Đã xóa # thùng',
-    batch_delete_not_found: '# thùng không tồn tại',
-    deleted_ok: 'Đã xóa',
-    does_not_exist: 'Không tồn tại',
-    barrel_exists: 'Không có mã này',
-    lang_switch: '🇨🇳 中文',
-    match_results: '🔍 "#" có # kết quả',
-    goto: '→',
-    barrel: 'thùng',
-    from: 'từ',
+    all_inventory: '📋 Tất cả',
+    export_excel: '📥 Xuất Excel',
+    th_barrel: 'Mã thùng',
+    th_location: 'Vị trí',
+    th_time: 'Cập nhật',
+    delete_title: '🗑 Xóa thùng',
+    delete_placeholder: 'Quét hoặc nhập mã thùng, Enter để xóa',
+    delete_confirm_prefix: 'Xác nhận xóa',
+    delete_confirm_suffix: '? Không thể hoàn tác.',
+    confirm_delete: '⚠️ Xác nhận xóa',
+    new_barrel: 'Thùng mới, chọn vị trí',
+    current_location: 'Hiện tại ở',
+    click_to_move: 'Nhấn vị trí khác để di chuyển',
+    a2_storage: '📦 Kho A2 (01~97)',
+    a2_99_label: '🤖 Khu phân loại tự động',
+    a2_98_label: '🔩 Khu phân loại đai ốc',
+    saved: '✅ # đã lưu vào #',
+    already_at: '⚠️ Thùng # đã ở #',
+    deleted: '🗑 Đã xóa thùng #',
+    not_found: 'Không tìm thấy thùng #',
+    no_results: 'Chưa có dữ liệu',
+    export_success: '📥 Đã xuất # bản ghi',
+    query_count: 'Tổng # bản ghi',
+    confirm_delete_msg: '🗑 Đã xóa thùng # (vị trí cũ: #)',
   }
 };
 
-let LANG = localStorage.getItem('barrel_lang') || 'zh';
-
+let lang = localStorage.getItem('barrel-lang') || 'zh';
 function t(key, ...args) {
-  let text = (I18N[LANG] && I18N[LANG][key]) || key;
-  args.forEach((a, i) => { text = text.replace('#', a); });
-  return text;
+  let s = I18N[lang][key] || key;
+  args.forEach((a, i) => { s = s.replace('#', a); });
+  return s;
 }
-
-function applyLang() {
-  // HTML data-i18n
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.dataset.i18n;
-    if (I18N[LANG] && I18N[LANG][key]) el.textContent = I18N[LANG][key];
-  });
-  // Placeholder
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    const key = el.dataset.i18nPlaceholder;
-    if (I18N[LANG] && I18N[LANG][key]) el.placeholder = I18N[LANG][key];
-  });
-  // Header
-  document.getElementById('header-title').textContent = t('header_title');
-  document.getElementById('lang-btn').textContent = t('lang_switch');
-  // Buttons that have nested spans for i18n need the span updated, the buttons themselves have text+span
-  // Re-apply the buttons with nested i18n spans
-  const ib = document.getElementById('btn-inbound-single');
-  if (ib) ib.innerHTML = '✅ <span data-i18n="confirm_inbound">' + t('confirm_inbound') + '</span>';
-  const ibb = document.getElementById('btn-inbound-batch');
-  if (ibb) ibb.innerHTML = '✅ <span data-i18n="batch_inbound_btn">' + t('batch_inbound_btn') + '</span>';
-  // Refresh dynamic content
-  if (inboundMode === 'batch') renderInboundBatch();
-  if (outboundMode === 'batch') renderOutboundBatch();
-  if (deleteMode === 'batch') renderDeleteBatch();
-  // Refresh logs if visible
-  if (document.getElementById('panel-logs').classList.contains('active')) loadLogs();
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('barrel-lang', l);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.trim().startsWith(l === 'zh' ? '中文' : 'VN')));
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
 }
+setLang(lang);
 
-function switchLang() {
-  LANG = LANG === 'zh' ? 'vi' : 'zh';
-  localStorage.setItem('barrel_lang', LANG);
-  applyLang();
-}
-
-// ═══════════════════════════════════════════════════════
-// 主逻辑 / Logic chính
-// ═══════════════════════════════════════════════════════
-
+// ─── API ──────────────────────────────────────────────────────────────────
 const API = '';
-// ─── 状态 ──────────────────────────────────────────────
-let inboundMode = 'single';
-let outboundMode = 'single';
-let deleteMode = 'single';
-let inboundBatch = [];
-let outboundBatch = [];
-let deleteBatch = [];
 
-// Apply language on load (after all state vars are declared)
-applyLang();
-let inboundSingleBarrel = null;
-let outboundSingleBarrel = null;
-let outboundSingleFrom = null;
-let selectedInboundLoc = null;
-let selectedBatchLoc = null;
-let selectedOutboundDest = null;
-let selectedBatchDest = null;
-
-// ─── 储位/目的地网格生成 ────────────────────────────────
-
-function buildInboundGrid(containerId) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  let html = '';
-  for (let i = 1; i <= 97; i++) {
-    const loc = 'A2-' + String(i).padStart(2, '0');
-    html += `<button class="loc-btn" data-loc="${loc}" onclick="pickInboundLoc('${loc}', this, '${containerId}')">${loc}</button>`;
-  }
-  el.innerHTML = html;
+function showToast(msg, type) {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
 }
 
-function pickInboundLoc(loc, btn, containerId) {
-  document.querySelectorAll('#' + containerId + ' .loc-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-
-  if (containerId === 'loc-inbound-single') {
-    selectedInboundLoc = loc;
-    document.getElementById('btn-inbound-single').disabled = false;
-  } else {
-    selectedBatchLoc = loc;
-    document.getElementById('btn-inbound-batch').disabled = false;
-  }
-}
-
-function buildDestGrid(rgContainerId, fjContainerId) {
-  const rgEl = document.getElementById(rgContainerId);
-  const fjEl = document.getElementById(fjContainerId);
-  if (!rgEl || !fjEl) return;
-  let rgHtml = '', fjHtml = '';
-  for (let i = 1; i <= 10; i++) {
-    const rg = 'RG' + String(i).padStart(2, '0');
-    const fj = 'FJ' + String(i).padStart(2, '0');
-    rgHtml += `<button class="loc-btn" data-dest="${rg}" onclick="pickDest('${rg}', this, '${rgContainerId}', '${fjContainerId}')">${rg}</button>`;
-    fjHtml += `<button class="loc-btn" data-dest="${fj}" onclick="pickDest('${fj}', this, '${rgContainerId}', '${fjContainerId}')">${fj}</button>`;
-  }
-  rgEl.innerHTML = rgHtml;
-  fjEl.innerHTML = fjHtml;
-  // Also populate A2-99 and A2-98 destination buttons
-  const suffix = rgContainerId.includes('single') ? 'single' : 'batch';
-  const e99 = document.getElementById('dest-a2-99-' + suffix);
-  const e98 = document.getElementById('dest-a2-98-' + suffix);
-  if (e99) e99.innerHTML = `<button class="loc-btn" data-dest="A2-99" onclick="pickDest('A2-99', this, '${rgContainerId}', '${fjContainerId}')">A2-99</button>`;
-  if (e98) e98.innerHTML = `<button class="loc-btn" data-dest="A2-98" onclick="pickDest('A2-98', this, '${rgContainerId}', '${fjContainerId}')">A2-98</button>`;
-}
-
-function pickDest(dest, btn, rgId, fjId) {
-  const suffix = rgId.includes('single') ? 'single' : 'batch';
-  document.querySelectorAll('#' + rgId + ' .loc-btn, #' + fjId + ' .loc-btn, #dest-a2-99-' + suffix + ' .loc-btn, #dest-a2-98-' + suffix + ' .loc-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-
-  if (rgId === 'dest-rg-single') {
-    selectedOutboundDest = dest;
-    executeSingleOutbound();
-  } else {
-    selectedBatchDest = dest;
-  }
-}
-
-// ─── 音效/反馈 ──────────────────────────────────────────
-
+// ─── Beep ─────────────────────────────────────────────────────────────────
 function beep() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -571,495 +271,247 @@ function beep() {
   } catch(e) {}
 }
 
-function flashZone(id) {
-  const el = document.getElementById(id);
-  el.classList.add('flash');
-  setTimeout(() => el.classList.remove('flash'), 300);
+// ─── Location Picker ──────────────────────────────────────────────────────
+const A2_CODES = { '自动分检区': '自动分检区', '自动分检螺帽区': '自动分检螺帽区' };
+let currentBarrelNo = null;
+let currentBarrelLoc = null;
+let selectedLoc = null;
+
+function buildLocGrid() {
+  const el = document.getElementById('loc-grid');
+  let html = '';
+  // A2-01 ~ A2-97
+  html += '<div class="loc-group-label">' + t('a2_storage') + '</div>';
+  for (let i = 1; i <= 97; i++) {
+    const loc = 'A2-' + String(i).padStart(2, '0');
+    html += `<button class="loc-btn" data-loc="${loc}" onclick="pickLoc('${loc}', this)">${loc}</button>`;
+  }
+  // A2-99 & A2-98 (special)
+  html += '<div class="loc-group-label">🤖 A2-99 | 🔩 A2-98</div>';
+  html += `<button class="loc-btn special" data-loc="自动分检区" onclick="pickLoc('自动分检区', this)">${t('a2_99_label')}</button>`;
+  html += `<button class="loc-btn special" data-loc="自动分检螺帽区" onclick="pickLoc('自动分检螺帽区', this)">${t('a2_98_label')}</button>`;
+  el.innerHTML = html;
 }
 
-function showLastScan(id, text) {
-  const el = document.getElementById(id);
-  el.textContent = '🛢 ' + text;
-  el.classList.remove('empty');
+function pickLoc(loc, btn) {
+  document.querySelectorAll('#loc-grid .loc-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedLoc = loc;
+  document.getElementById('btn-confirm').disabled = false;
 }
 
-// ─── 模式切换 ──────────────────────────────────────────
+function showLocPicker(barrelNo, exists, currentLocation) {
+  currentBarrelNo = barrelNo;
+  currentBarrelLoc = currentLocation;
+  selectedLoc = null;
+  document.getElementById('btn-confirm').disabled = true;
 
-function setInboundMode(mode) {
-  inboundMode = mode;
-  document.querySelectorAll('#panel-inbound .mode-btn').forEach((b,i) =>
-    b.classList.toggle('active', i === (mode === 'single' ? 0 : 1)));
-  document.getElementById('inbound-single-loc').style.display = 'none';
-  document.getElementById('inbound-batch-card').style.display = mode === 'batch' ? 'block' : 'none';
-  document.getElementById('inbound-batch-confirm').style.display = 'none';
-  inboundSingleBarrel = null; selectedInboundLoc = null; selectedBatchLoc = null;
-  if (mode === 'batch') renderInboundBatch();
-  document.getElementById('inbound-scanner').focus();
-}
+  const info = document.getElementById('loc-barrel-no');
+  const detail = document.getElementById('loc-barrel-detail');
 
-function setOutboundMode(mode) {
-  outboundMode = mode;
-  document.querySelectorAll('#panel-outbound .mode-btn').forEach((b,i) =>
-    b.classList.toggle('active', i === (mode === 'single' ? 0 : 1)));
-  document.getElementById('outbound-single-card').style.display = 'none';
-  document.getElementById('outbound-batch-dest').style.display = 'none';
-  selectedOutboundDest = null; selectedBatchDest = null;
-  if (mode === 'batch') { renderOutboundBatch(); document.getElementById('outbound-batch-card').style.display = 'block'; }
-  else document.getElementById('outbound-batch-card').style.display = 'none';
-  document.getElementById('outbound-scanner').focus();
-}
-
-// ─── 入库扫描 ──────────────────────────────────────────
-
-document.getElementById('inbound-scanner').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' || e.keyCode === 13 || e.code === 'Enter') { e.preventDefault(); const v = this.value.trim(); if (v) { this.value = ''; inboundScan(v); } }
-});
-
-function inboundScan(barrelNo) {
-  beep(); flashZone('inbound-scan-zone'); showLastScan('inbound-last-scan', barrelNo);
-  document.getElementById('inbound-scan-status').innerHTML = '<span class="beep-dot"></span>' + t('scanned');
-
-  if (inboundMode === 'single') {
-    inboundSingleBarrel = barrelNo;
-    showSingleInboundLoc(barrelNo);
+  info.textContent = '🛢 ' + barrelNo;
+  if (exists) {
+    info.className = 'barrel-info existing';
+    const displayLoc = (currentLocation === '自动分检区' || currentLocation === '自动分检螺帽区') 
+      ? currentLocation : currentLocation;
+    detail.textContent = t('current_location') + ' ' + displayLoc + ' — ' + t('click_to_move');
   } else {
-    if (inboundBatch.includes(barrelNo)) return;
-    inboundBatch.push(barrelNo);
-    renderInboundBatch();
+    info.className = 'barrel-info';
+    detail.textContent = t('new_barrel');
   }
+
+  buildLocGrid();
+  document.getElementById('loc-picker').classList.add('show');
+  document.getElementById('loc-picker').scrollIntoView({ behavior: 'smooth' });
 }
 
-async function showSingleInboundLoc(barrelNo) {
-  document.getElementById('inbound-single-barrel').textContent = '🛢 ' + barrelNo;
-  document.getElementById('inbound-single-loc').style.display = 'block';
-  buildInboundGrid('loc-inbound-single');
-  selectedInboundLoc = null;
-  document.getElementById('btn-inbound-single').disabled = true;
-  // Update button text
-  const ib = document.getElementById('btn-inbound-single');
-  ib.innerHTML = '✅ <span>' + t('confirm_inbound') + '</span>';
-  document.getElementById('inbound-single-loc').scrollIntoView({ behavior: 'smooth' });
+function hideLocPicker() {
+  document.getElementById('loc-picker').classList.remove('show');
+  currentBarrelNo = null;
+  currentBarrelLoc = null;
+  selectedLoc = null;
+  document.getElementById('main-scanner').value = '';
+  document.getElementById('main-scanner').focus();
 }
 
-function cancelSingleInbound() {
-  inboundSingleBarrel = null; selectedInboundLoc = null;
-  document.getElementById('inbound-single-loc').style.display = 'none';
-  document.getElementById('inbound-scanner').focus();
-}
-
-async function confirmSingleInbound() {
-  if (!inboundSingleBarrel || !selectedInboundLoc) return;
-  const resp = await fetch(API + '/api/inbound', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ barrel_no: inboundSingleBarrel, location: selectedInboundLoc })
-  });
-  const data = await resp.json();
-  let msg;
-  if (data.success) {
-    msg = t('inbound_ok', inboundSingleBarrel, selectedInboundLoc);
-  } else {
-    // Translate backend error message
-    msg = translateMsg(data.msg);
-  }
-  document.getElementById('inbound-msg').innerHTML = `<div class="result ${data.success ? 'success' : 'error'}">${msg}</div>`;
-  inboundSingleBarrel = null; selectedInboundLoc = null;
-  document.getElementById('inbound-single-loc').style.display = 'none';
-  setTimeout(() => { document.getElementById('inbound-msg').innerHTML = ''; }, 2000);
-  document.getElementById('inbound-scanner').focus();
-}
-
-// Translate backend Chinese messages
-function translateMsg(msg) {
-  if (LANG === 'zh') return msg;
-  // Common patterns from backend
-  if (msg.includes('不在库中')) {
-    const m = msg.match(/桶号 (\S+) 不在库中/);
-    if (m) return t('not_in_stock_msg', m[1]);
-  }
-  if (msg.includes('已在')) {
-    const m = msg.match(/桶号 (\S+) 已在 (\S+)/);
-    if (m) return t('already_in_msg', m[1], m[2]);
-  }
-  // Fallback: try to keep numbers
-  return msg;
-}
-
-// ─── 批量入库 ──────────────────────────────────────────
-
-function renderInboundBatch() {
-  document.getElementById('inbound-batch-count').textContent = t('scanned_batch', inboundBatch.length);
-  document.getElementById('inbound-batch-list').innerHTML = inboundBatch.map((b, i) =>
-    `<div class="batch-item"><span>🛢 ${b}</span><button class="del" onclick="removeInboundBatch(${i})">✕</button></div>`).join('');
-}
-
-function removeInboundBatch(i) { inboundBatch.splice(i, 1); renderInboundBatch(); }
-function clearInboundBatch() { inboundBatch = []; renderInboundBatch(); document.getElementById('inbound-batch-confirm').style.display = 'none'; }
-
-async function showBatchLocPicker() {
-  if (inboundBatch.length === 0) return;
-  document.getElementById('inbound-batch-confirm').style.display = 'block';
-  buildInboundGrid('loc-inbound-batch');
-  selectedBatchLoc = null;
-  document.getElementById('btn-inbound-batch').disabled = true;
-  const ibb = document.getElementById('btn-inbound-batch');
-  ibb.innerHTML = '✅ <span>' + t('batch_inbound_btn') + '</span>';
-  document.getElementById('inbound-batch-confirm').scrollIntoView({ behavior: 'smooth' });
-}
-
-function cancelBatchInbound() {
-  selectedBatchLoc = null;
-  document.getElementById('inbound-batch-confirm').style.display = 'none';
-  document.getElementById('inbound-scanner').focus();
-}
-
-async function confirmBatchInbound() {
-  if (inboundBatch.length === 0 || !selectedBatchLoc) return;
-  const resp = await fetch(API + '/api/inbound/batch', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ barrel_nos: inboundBatch, location: selectedBatchLoc })
-  });
-  const data = await resp.json();
-  let msg = t('batch_inbound_ok', data.success_count, data.location);
-  if (data.skip_list.length > 0) msg += '<br>' + t('batch_inbound_skip') + ' ' + data.skip_list.join(', ');
-  document.getElementById('inbound-msg').innerHTML = `<div class="result success">${msg}</div>`;
-  inboundBatch = []; selectedBatchLoc = null;
-  renderInboundBatch();
-  document.getElementById('inbound-batch-confirm').style.display = 'none';
-  setTimeout(() => { document.getElementById('inbound-msg').innerHTML = ''; }, 3000);
-  document.getElementById('inbound-scanner').focus();
-}
-
-// 批量入库的"选择储位"按钮
-(function() {
-  const card = document.getElementById('inbound-batch-card');
-  if (card) {
-    const btn = document.createElement('button');
-    btn.className = 'btn btn-primary'; btn.id = 'inbound-batch-pick-btn';
-    btn.textContent = t('pick_loc_btn'); btn.style.marginTop = '6px';
-    btn.onclick = showBatchLocPicker; card.appendChild(btn);
-  }
-})();
-
-// ─── 出库扫描 ──────────────────────────────────────────
-
-document.getElementById('outbound-scanner').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' || e.keyCode === 13 || e.code === 'Enter') { e.preventDefault(); const v = this.value.trim(); if (v) { this.value = ''; outboundScan(v); } }
-});
-
-async function outboundScan(barrelNo) {
-  beep(); flashZone('outbound-scan-zone'); showLastScan('outbound-last-scan', barrelNo);
-  document.getElementById('outbound-scan-status').innerHTML = '<span class="beep-dot"></span>' + t('scanned');
-
-  if (outboundMode === 'single') {
-    const qResp = await fetch(API + '/api/inventory/' + encodeURIComponent(barrelNo));
-    if (!qResp.ok) {
-      document.getElementById('outbound-msg').innerHTML = `<div class="result error">❌ ${t('not_in_stock_msg', barrelNo)}</div>`;
-      setTimeout(() => { document.getElementById('outbound-msg').innerHTML = ''; }, 2000);
-      document.getElementById('outbound-scanner').focus();
-      return;
-    }
-    const qData = await qResp.json();
-    outboundSingleBarrel = barrelNo;
-    outboundSingleFrom = qData.location;
-    document.getElementById('outbound-single-barrel').textContent = '🛢 ' + barrelNo;
-    document.getElementById('outbound-single-from').textContent = '📍 ' + qData.location;
-    document.getElementById('outbound-single-card').style.display = 'block';
-    buildDestGrid('dest-rg-single', 'dest-fj-single');
-    selectedOutboundDest = null;
-    document.getElementById('outbound-single-card').scrollIntoView({ behavior: 'smooth' });
-  } else {
-    if (outboundBatch.includes(barrelNo)) return;
-    outboundBatch.push(barrelNo);
-    renderOutboundBatch();
-  }
-}
-
-function cancelOutboundSingle() {
-  outboundSingleBarrel = null; outboundSingleFrom = null; selectedOutboundDest = null;
-  document.getElementById('outbound-single-card').style.display = 'none';
-  document.getElementById('outbound-scanner').focus();
-}
-
-async function executeSingleOutbound() {
-  if (!outboundSingleBarrel || !selectedOutboundDest) return;
-  const resp = await fetch(API + '/api/outbound', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ barrel_no: outboundSingleBarrel, destination: selectedOutboundDest })
-  });
-  const data = await resp.json();
-  let msg;
-  if (data.success) {
-    msg = t('outbound_ok_dest', outboundSingleBarrel, outboundSingleFrom, selectedOutboundDest);
-  } else {
-    msg = translateMsg(data.msg);
-  }
-  document.getElementById('outbound-msg').innerHTML = `<div class="result ${data.success ? 'success' : 'error'}">${msg}</div>`;
-  outboundSingleBarrel = null; outboundSingleFrom = null; selectedOutboundDest = null;
-  document.getElementById('outbound-single-card').style.display = 'none';
-  setTimeout(() => { document.getElementById('outbound-msg').innerHTML = ''; }, 2000);
-  document.getElementById('outbound-scanner').focus();
-}
-
-// ─── 批量出库 ──────────────────────────────────────────
-
-function renderOutboundBatch() {
-  document.getElementById('outbound-batch-count').textContent = t('scanned_batch', outboundBatch.length);
-  document.getElementById('outbound-batch-list').innerHTML = outboundBatch.map((b, i) =>
-    `<div class="batch-item"><span>🛢 ${b}</span><button class="del" onclick="removeOutboundBatch(${i})">✕</button></div>`).join('');
-}
-
-function removeOutboundBatch(i) { outboundBatch.splice(i, 1); renderOutboundBatch(); }
-function clearOutboundBatch() { outboundBatch = []; renderOutboundBatch(); document.getElementById('outbound-batch-dest').style.display = 'none'; }
-
-function showBatchDestPicker() {
-  if (outboundBatch.length === 0) return;
-  document.getElementById('outbound-batch-dest').style.display = 'block';
-  buildDestGrid('dest-rg-batch', 'dest-fj-batch');
-  selectedBatchDest = null;
-  document.getElementById('outbound-batch-dest').scrollIntoView({ behavior: 'smooth' });
-}
-
-function cancelBatchOutbound() {
-  selectedBatchDest = null;
-  document.getElementById('outbound-batch-dest').style.display = 'none';
-  document.getElementById('outbound-scanner').focus();
-}
-
-async function confirmBatchOutbound() {
-  if (outboundBatch.length === 0 || !selectedBatchDest) return;
-  const resp = await fetch(API + '/api/outbound/batch', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ barrel_nos: outboundBatch, destination: selectedBatchDest })
-  });
-  const data = await resp.json();
-  let details = data.success_list.map(i => `${i.barrel_no} ← ${i.from_location}`).join(' | ');
-  let msg = t('batch_outbound_ok', data.success_count, selectedBatchDest) + '<br>' + details;
-  if (data.not_found_list.length > 0) msg += '<br>' + t('batch_outbound_not_found') + ' ' + data.not_found_list.join(', ');
-  document.getElementById('outbound-msg').innerHTML = `<div class="result success">${msg}</div>`;
-  outboundBatch = []; selectedBatchDest = null;
-  renderOutboundBatch();
-  document.getElementById('outbound-batch-dest').style.display = 'none';
-  setTimeout(() => { document.getElementById('outbound-msg').innerHTML = ''; }, 5000);
-  document.getElementById('outbound-scanner').focus();
-}
-
-// 批量出库的"选择目的地"按钮
-(function() {
-  const card = document.getElementById('outbound-batch-card');
-  if (card) {
-    const btn = document.createElement('button');
-    btn.className = 'btn btn-primary'; btn.id = 'outbound-batch-pick-btn';
-    btn.textContent = t('pick_dest_btn'); btn.style.marginTop = '6px';
-    btn.onclick = showBatchDestPicker; card.appendChild(btn);
-  }
-})();
-
-// ─── 删除桶号 ──────────────────────────────────────────
-
-function setDeleteMode(mode) {
-  deleteMode = mode;
-  document.querySelectorAll('#panel-query .mode-btn').forEach((b,i) =>
-    b.classList.toggle('active', i === (mode === 'single' ? 0 : 1)));
-  document.getElementById('delete-single-confirm').style.display = 'none';
-  document.getElementById('delete-batch-section').style.display = mode === 'batch' ? 'block' : 'none';
-  if (mode === 'batch') renderDeleteBatch();
-  document.getElementById('delete-input').focus();
-}
-
-document.getElementById('delete-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' || e.keyCode === 13 || e.code === 'Enter') { e.preventDefault(); const v = this.value.trim(); if (v) { this.value = ''; deleteLookup(v); } }
-});
-
-async function deleteLookup(barrelNo) {
-  beep();
-  if (deleteMode === 'single') {
-    const resp = await fetch(API + '/api/inventory/' + encodeURIComponent(barrelNo));
-    if (!resp.ok) {
-      document.getElementById('delete-msg').innerHTML = `<div class="result error">${t('does_not_exist')}: ${barrelNo}</div>`;
-      setTimeout(() => { document.getElementById('delete-msg').innerHTML = ''; }, 2000);
-      document.getElementById('delete-input').focus();
-      return;
-    }
+async function confirmSave() {
+  if (!currentBarrelNo || !selectedLoc) return;
+  try {
+    const resp = await fetch(API + '/api/inbound', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ barrel_no: currentBarrelNo, location: selectedLoc })
+    });
     const data = await resp.json();
-    document.getElementById('delete-single-info').innerHTML = `
-      🛢 <b>${data.barrel_no}</b> &nbsp; 📍 ${data.location} &nbsp;
-      <span class="badge badge-${data.status==='in'?'in':'out'}">${data.status==='in' ? t('status_in') : t('status_out')}</span>
-      <br><span style="font-size:11px;color:#999">${data.update_time}</span>`;
-    document.getElementById('delete-single-confirm').style.display = 'block';
-    window._deleteBarrel = barrelNo;
-    document.getElementById('delete-single-confirm').scrollIntoView({ behavior: 'smooth' });
-  } else {
-    if (deleteBatch.includes(barrelNo)) return;
-    deleteBatch.push(barrelNo);
-    renderDeleteBatch();
-  }
-}
-
-async function confirmDeleteSingle() {
-  const barrelNo = window._deleteBarrel;
-  if (!barrelNo) return;
-  if (!confirm(t('confirm_delete', barrelNo))) return;
-  const resp = await fetch(API + '/api/barrel/' + encodeURIComponent(barrelNo), { method: 'DELETE' });
-  const data = await resp.json();
-  document.getElementById('delete-msg').innerHTML = `<div class="result ${data.success ? 'success' : 'error'}">${data.msg}</div>`;
-  document.getElementById('delete-single-confirm').style.display = 'none';
-  window._deleteBarrel = null;
-  setTimeout(() => { document.getElementById('delete-msg').innerHTML = ''; }, 2000);
-  document.getElementById('delete-input').focus();
-}
-
-function cancelDelete() {
-  document.getElementById('delete-single-confirm').style.display = 'none';
-  window._deleteBarrel = null;
-  document.getElementById('delete-input').focus();
-}
-
-function renderDeleteBatch() {
-  document.getElementById('delete-batch-count').textContent = t('selected_batch', deleteBatch.length);
-  document.getElementById('delete-batch-list').innerHTML = deleteBatch.map((b, i) =>
-    `<div class="batch-item"><span>🛢 ${b}</span><button class="del" onclick="removeDeleteBatch(${i})">✕</button></div>`).join('');
-}
-
-function removeDeleteBatch(i) { deleteBatch.splice(i, 1); renderDeleteBatch(); }
-function clearDeleteBatch() { deleteBatch = []; renderDeleteBatch(); }
-
-async function confirmDeleteBatch() {
-  if (deleteBatch.length === 0) return;
-  if (!confirm(t('confirm_delete_batch', deleteBatch.length))) return;
-  const resp = await fetch(API + '/api/barrel/delete/batch', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ barrel_nos: deleteBatch })
-  });
-  const data = await resp.json();
-  let msg = t('batch_delete_ok', data.deleted.length);
-  if (data.not_found.length > 0) msg += '<br>' + t('batch_delete_not_found', data.not_found.length);
-  document.getElementById('delete-msg').innerHTML = `<div class="result success">${msg}</div>`;
-  deleteBatch = [];
-  renderDeleteBatch();
-  setTimeout(() => { document.getElementById('delete-msg').innerHTML = ''; }, 3000);
-  document.getElementById('delete-input').focus();
-}
-
-// ─── 标签切换 ──────────────────────────────────────────
-
-function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active', ['inbound','outbound','query','logs'][i] === tab);
-  });
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('panel-' + tab).classList.add('active');
-
-  if (tab === 'outbound') setTimeout(() => document.getElementById('outbound-scanner').focus(), 100);
-  if (tab === 'query') setTimeout(() => document.getElementById('query-input').focus(), 100);
-  if (tab === 'logs') loadLogs();
-}
-
-// ─── 查询 ──────────────────────────────────────────────
-
-document.getElementById('query-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' || e.keyCode === 13 || e.code === 'Enter') { e.preventDefault(); searchInventory(); }
-});
-
-async function searchInventory() {
-  const val = document.getElementById('query-input').value.trim();
-  if (!val) return;
-  document.getElementById('query-input').value = '';
-  const r1 = await fetch(API + '/api/inventory/' + encodeURIComponent(val));
-  if (r1.ok) {
-    const data = await r1.json();
-    if (data.length === 0) {
-      document.getElementById('query-result').innerHTML = `<div class="result error">${t('not_found')}: ${val}</div>`;
-    } else if (data.length === 1) {
-      const d = data[0];
-      document.getElementById('query-result').innerHTML = `
-        <div class="result info">
-          <div class="info-row"><span class="info-label">${t('barrel_no')}</span><span class="info-value">🛢 ${d.barrel_no}</span></div>
-          <div class="info-row"><span class="info-label">${t('location')}</span><span class="info-value">📍 ${d.location}</span></div>
-          <div class="info-row"><span class="info-label">${t('status')}</span><span class="info-value"><span class="badge badge-${d.status==='in'?'in':'out'}">${d.status==='in' ? t('status_in') : t('status_out')}</span></span></div>
-          <div class="info-row"><span class="info-label">${t('update_time')}</span><span class="info-value">${d.update_time}</span></div>
-        </div>`;
+    beep();
+    const msg = data.message || '';
+    if (msg.includes('已在')) {
+      showToast(t('already_at', currentBarrelNo, selectedLoc), 'error');
     } else {
-      let html = `<div class="result info"><strong>${t('match_results', val, data.length)}</strong>`;
-      data.forEach(d => {
-        const badge = d.status==='in' ? `<span class="badge badge-in">${t('status_in')}</span>` : `<span class="badge badge-out">${t('status_out')}</span>`;
-        html += `<div class="info-row"><span>🛢 ${d.barrel_no}</span><span>📍 ${d.location}</span>${badge}</div>`;
-      });
-      html += '</div>';
-      document.getElementById('query-result').innerHTML = html;
+      showToast(t('saved', currentBarrelNo, selectedLoc), 'success');
     }
-    document.getElementById('query-input').focus();
-    return;
+    hideLocPicker();
+  } catch(e) {
+    showToast(e.message, 'error');
   }
-  document.getElementById('query-result').innerHTML = `<div class="result error">${t('not_found')}: ${val}</div>`;
-  document.getElementById('query-input').focus();
 }
 
-async function loadAllInventory() {
-  const resp = await fetch(API + '/api/inventory');
-  const data = await resp.json();
-  if (data.length === 0) {
-    document.getElementById('query-result').innerHTML = `<div class="result info">${t('no_inventory')}</div>`;
-    return;
+// ─── Main Scanner Handler ─────────────────────────────────────────────────
+document.getElementById('main-scanner').addEventListener('keydown', async function(e) {
+  if (e.key !== 'Enter') return;
+  const val = this.value.trim().toUpperCase();
+  if (!val) return;
+  beep();
+
+  try {
+    const resp = await fetch(API + '/api/inventory/' + encodeURIComponent(val));
+    if (resp.status === 404) {
+      // New barrel
+      showLocPicker(val, false, null);
+    } else {
+      const data = await resp.json();
+      if (data && data.barrel_no) {
+        showLocPicker(val, true, data.location);
+      } else {
+        showLocPicker(val, false, null);
+      }
+    }
+  } catch(e) {
+    showLocPicker(val, false, null);
   }
-  let html = `<table><thead><tr><th>${t('barrel_no')}</th><th>${t('location')}</th><th>${t('time')}</th></tr></thead><tbody>`;
-  data.forEach(d => {
-    html += `<tr><td>🛢 ${d.barrel_no}</td><td>📍 ${d.location}</td><td style="color:#999;font-size:11px">${d.update_time}</td></tr>`;
-  });
-  html += `</tbody></table><div style="margin-top:6px;color:#999;font-size:12px;text-align:center">${t('total_in_stock', data.length)}</div>`;
-  document.getElementById('query-result').innerHTML = html;
+});
+
+// ─── Confirm / Cancel ─────────────────────────────────────────────────────
+document.getElementById('btn-confirm').addEventListener('click', confirmSave);
+document.getElementById('btn-cancel').addEventListener('click', hideLocPicker);
+
+// ─── Query ────────────────────────────────────────────────────────────────
+document.getElementById('query-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doQuery();
+});
+
+async function doQuery() {
+  const val = document.getElementById('query-input').value.trim();
+  if (!val) { showAll(); return; }
+  try {
+    const resp = await fetch(API + '/api/inventory');
+    const data = await resp.json();
+    const items = data.items || data || [];
+    const q = val.toUpperCase();
+    const filtered = items.filter(d =>
+      (d.barrel_no || '').toUpperCase().includes(q) ||
+      (d.location || '').includes(val)
+    );
+    renderResults(filtered);
+  } catch(e) { showToast(e.message, 'error'); }
 }
 
-// ─── 操作记录 ──────────────────────────────────────────
-
-async function loadLogs() {
-  const resp = await fetch(API + '/api/logs?limit=50');
-  const data = await resp.json();
-  if (data.length === 0) {
-    document.getElementById('logs-content').innerHTML = `<div class="result info">${t('no_records')}</div>`;
-    return;
-  }
-  let html = `<table><thead><tr><th>${t('op_time')}</th><th>${t('barrel_no')}</th><th>${t('action')}</th><th>${t('location')}</th><th>${t('dest')}</th></tr></thead><tbody>`;
-  data.forEach(d => {
-    const actionMap = { '入库': '📥 ' + t('action_inbound'), '出库': '📤 ' + t('action_outbound'), '删除': '🗑 ' + t('action_delete') };
-    const actionText = actionMap[d.action] || d.action;
-    const destTag = d.destination
-      ? (d.destination.startsWith('RG') ? `<span class="zone-tag rg">👤${d.destination}</span>`
-        : d.destination === 'A2-99' ? `<span class="zone-tag a2d">🤖${d.destination}</span>`
-        : d.destination === 'A2-98' ? `<span class="zone-tag a2d">🔩${d.destination}</span>`
-        : `<span class="zone-tag fj">🤖${d.destination}</span>`)
-      : '';
-    html += `<tr>
-      <td style="color:#999;font-size:11px;white-space:nowrap">${d.created_at}</td>
-      <td>${d.barrel_no}</td>
-      <td>${actionText}</td>
-      <td>${d.location}</td>
-      <td>${destTag}</td>
-    </tr>`;
-  });
-  html += '</tbody></table>';
-  document.getElementById('logs-content').innerHTML = html;
+async function showAll() {
+  try {
+    const resp = await fetch(API + '/api/inventory');
+    const data = await resp.json();
+    renderResults(data.items || data || []);
+  } catch(e) { showToast(e.message, 'error'); }
 }
 
-// ─── 防止输入框失焦 ─────────────────────────────────────
+function renderResults(items) {
+  const wrap = document.getElementById('query-results');
+  const tbody = document.querySelector('#results-table tbody');
+  const count = document.getElementById('result-count');
 
+  if (!items || items.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#8c8c8c;padding:20px">' + t('no_results') + '</td></tr>';
+    count.textContent = '';
+  } else {
+    tbody.innerHTML = items.map(d => {
+      const locDisplay = displayLocation(d.location);
+      return `<tr><td style="font-weight:600">${d.barrel_no}</td><td>${locDisplay}</td><td>${d.updated_at || d.time || ''}</td></tr>`;
+    }).join('');
+    count.textContent = t('query_count', items.length);
+  }
+  wrap.style.display = 'block';
+}
+
+function displayLocation(loc) {
+  if (!loc) return '';
+  if (loc === '自动分检区') return '<span class="zone-tag special">🤖 ' + loc + '</span>';
+  if (loc === '自动分检螺帽区') return '<span class="zone-tag special">🔩 ' + loc + '</span>';
+  return loc;
+}
+
+async function exportExcel() {
+  try {
+    const resp = await fetch(API + '/api/export');
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'barrel_inventory_' + new Date().toISOString().slice(0,10) + '.xlsx';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(t('export_success'), 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ─── Delete ───────────────────────────────────────────────────────────────
+let deleteBarrelNo = null;
+
+document.getElementById('delete-scanner').addEventListener('keydown', async function(e) {
+  if (e.key !== 'Enter') return;
+  const val = this.value.trim().toUpperCase();
+  if (!val) return;
+  beep();
+
+  try {
+    const resp = await fetch(API + '/api/inventory/' + encodeURIComponent(val));
+    if (resp.status === 404) {
+      showToast(t('not_found', val), 'error');
+      this.value = '';
+      deleteBarrelNo = null;
+    } else {
+      const data = await resp.json();
+      deleteBarrelNo = val;
+      document.getElementById('delete-barrel-no').textContent = val;
+      document.getElementById('delete-info').style.display = 'block';
+      document.getElementById('btn-delete-confirm').style.display = 'block';
+    }
+  } catch(e) {
+    showToast(e.message, 'error');
+    this.value = '';
+  }
+});
+
+document.getElementById('btn-delete-confirm').addEventListener('click', async function() {
+  if (!deleteBarrelNo) return;
+  try {
+    const resp = await fetch(API + '/api/barrel/' + encodeURIComponent(deleteBarrelNo), { method: 'DELETE' });
+    const data = await resp.json();
+    beep();
+    showToast(t('confirm_delete_msg', deleteBarrelNo, data.location || '?'), 'success');
+  } catch(e) {
+    showToast(e.message, 'error');
+  }
+  // Reset
+  deleteBarrelNo = null;
+  document.getElementById('delete-scanner').value = '';
+  document.getElementById('delete-info').style.display = 'none';
+  document.getElementById('btn-delete-confirm').style.display = 'none';
+  document.getElementById('delete-scanner').focus();
+});
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+buildLocGrid();
+document.getElementById('main-scanner').focus();
+
+// Re-focus main scanner if user clicks away
 document.addEventListener('click', function(e) {
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'A') return;
-  const activePanel = document.querySelector('.panel.active');
-  if (!activePanel) return;
-  if (activePanel.id === 'panel-inbound') setTimeout(() => document.getElementById('inbound-scanner').focus(), 50);
-  else if (activePanel.id === 'panel-outbound') setTimeout(() => document.getElementById('outbound-scanner').focus(), 50);
-});
-
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) {
-    const ap = document.querySelector('.panel.active');
-    if (ap && ap.id === 'panel-inbound') document.getElementById('inbound-scanner').focus();
-    if (ap && ap.id === 'panel-outbound') document.getElementById('outbound-scanner').focus();
+  if (!e.target.closest('input') && !e.target.closest('button') && !e.target.closest('.lang-btn')) {
+    document.getElementById('main-scanner').focus();
   }
 });
 
-// ─── 启动 ──────────────────────────────────────────────
-document.getElementById('inbound-scanner').focus();
+// Show all on load
+showAll();
 </script>
 </body>
 </html>
