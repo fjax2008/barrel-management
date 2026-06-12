@@ -187,10 +187,11 @@ const I18N = {
     delete_title: '🗑 删除桶号', delete_placeholder: '扫码或输入桶号，回车确认删除',
     delete_confirm_prefix: '确认删除', delete_confirm_suffix: '？此操作不可撤销。', confirm_delete: '⚠️ 确认删除',
     new_barrel: '请选择储位',
-    a2_storage: '📦 储区 A2 (01~97)', a2_99_label: '🤖 自动分检区', a2_98_label: '🔩 自动分检螺帽区',
+    a2_storage: '📦 储区 A2 (01~96)', a2_97_label: '🪣 人工分检', a2_99_label: '🤖 自动分检', a2_98_label: '🔩 分检螺帽',
     saved: '✅ # 个桶号已保存到 #',
     select_location_first: '请先选择储位',
     no_barrels: '请先扫码添加桶号',
+    detail_hide: '📋 收起明细',
     deleted: '🗑 桶号 # 已删除',
     not_found: '未找到桶号 #', no_results: '暂无库存记录',
     export_success: '📥 Excel 已导出', query_count: '共 # 条',
@@ -209,10 +210,11 @@ const I18N = {
     delete_title: '🗑 Xóa thùng', delete_placeholder: 'Quét hoặc nhập mã thùng, Enter để xóa',
     delete_confirm_prefix: 'Xác nhận xóa', delete_confirm_suffix: '? Không thể hoàn tác.', confirm_delete: '⚠️ Xác nhận xóa',
     new_barrel: 'Chọn vị trí',
-    a2_storage: '📦 Kho A2 (01~97)', a2_99_label: '🤖 Khu phân loại tự động', a2_98_label: '🔩 Khu phân loại đai ốc',
+    a2_storage: '📦 Kho A2 (01~96)', a2_97_label: '🪣 Phân loại thủ công', a2_99_label: '🤖 Phân loại tự động', a2_98_label: '🔩 Phân loại đai ốc',
     saved: '✅ # mã đã lưu vào #',
     select_location_first: 'Hãy chọn vị trí trước',
     no_barrels: 'Hãy quét thêm mã thùng trước',
+    detail_hide: '📋 Thu gọn',
     deleted: '🗑 Đã xóa thùng #',
     not_found: 'Không tìm thấy thùng #', no_results: 'Chưa có dữ liệu',
     export_success: '📥 Xuất Excel thành công', query_count: 'Tổng # bản ghi',
@@ -304,11 +306,12 @@ document.getElementById('btn-clear').addEventListener('click', clearBarrels);
 function buildLocGrid() {
   const el = document.getElementById('loc-grid');
   let h = '<div class="loc-label">' + t('a2_storage') + '</div>';
-  for (let i = 1; i <= 97; i++) {
+  for (let i = 1; i <= 96; i++) {
     const loc = 'A2-' + String(i).padStart(2, '0');
     h += `<button class="loc-btn" data-loc="${loc}" onclick="pickLoc('${loc}', this)">${loc}</button>`;
   }
-  h += '<div class="loc-label">🤖 A2-99 | 🔩 A2-98</div>';
+  h += '<div class="loc-label">🪣 A2-97 | 🤖 A2-99 | 🔩 A2-98</div>';
+  h += `<button class="loc-btn special" data-loc="人工分检区" onclick="pickLoc('人工分检区', this)">${t('a2_97_label')}</button>`;
   h += `<button class="loc-btn special" data-loc="自动分检区" onclick="pickLoc('自动分检区', this)">${t('a2_99_label')}</button>`;
   h += `<button class="loc-btn special" data-loc="自动分检螺帽区" onclick="pickLoc('自动分检螺帽区', this)">${t('a2_98_label')}</button>`;
   el.innerHTML = h;
@@ -346,8 +349,10 @@ async function toggleDetail() {
   const ts = document.getElementById('table-section');
   ts.classList.toggle('show', detailOpen);
   if (detailOpen) {
-    document.getElementById('btn-detail').textContent = t('zh'===lang?'detail_loaded':'detail_loaded_vi')||'📋 桶明细';
+    document.getElementById('btn-detail').textContent = t('detail_hide');
     await loadDetail();
+  } else {
+    document.getElementById('btn-detail').textContent = t('all_inventory');
   }
 }
 async function loadDetail() {
@@ -380,7 +385,8 @@ function renderResults(items) {
   } else {
     tbody.innerHTML = items.map(d => {
       let rc = '', ld = d.location||'';
-      if (ld === '自动分检区') { rc = 'row-a2d'; ld = '<span class="zone-tag special">🤖 '+ld+'</span>'; }
+      if (ld === '人工分检区') { rc = 'row-a2n'; ld = '<span class="zone-tag special">🪣 '+ld+'</span>'; }
+      else if (ld === '自动分检区') { rc = 'row-a2d'; ld = '<span class="zone-tag special">🤖 '+ld+'</span>'; }
       else if (ld === '自动分检螺帽区') { rc = 'row-a2n'; ld = '<span class="zone-tag special">🔩 '+ld+'</span>'; }
       return `<tr class="${rc}"><td style="font-weight:600">${d.barrel_no}</td><td>${ld}</td><td>${d.update_time||d.updated_at||d.time||''}</td></tr>`;
     }).join('');
