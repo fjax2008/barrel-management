@@ -468,17 +468,20 @@ document.getElementById('scanner').focus();
 document.getElementById('quick-query').addEventListener('keydown', async function(e) {
   if (e.key !== 'Enter') return;
   const val = this.value.trim().toUpperCase();
-  if (!val) { document.getElementById('quick-result').innerHTML = ''; return; }
+  const el = document.getElementById('quick-result');
+  if (!val) { el.innerHTML = ''; return; }
+  el.innerHTML = '<span style="color:#8c8c8c">' + t('checking') + '</span>';
   try {
     const resp = await fetch(API + '/api/inventory/' + encodeURIComponent(val));
-    const el = document.getElementById('quick-result');
-    if (resp.status === 404) {
+    const data = await resp.json();
+    const items = Array.isArray(data) ? data : [data];
+    if (!items.length) {
       el.innerHTML = '<span class="not-found">' + t('not_found', val) + '</span>';
     } else {
-      const data = await resp.json();
-      el.innerHTML = '<span class="found">' + data.barrel_no + ' → <span class="loc">' + data.location + '</span> · ' + (data.update_time||'').slice(5) + '</span>';
+      const d = items[0];
+      el.innerHTML = '<span class="found">' + d.barrel_no + ' → <span class="loc">' + d.location + '</span> · ' + (d.update_time||'').slice(5) + '</span>' + (items.length > 1 ? ' <span style="color:#8c8c8c;font-size:11px">+'+(items.length-1)+'条</span>' : '') + '</span>';
     }
-  } catch(e) {}
+  } catch(e) { el.innerHTML = ''; }
 });
 
 document.addEventListener('click', function(e) {
