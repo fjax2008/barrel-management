@@ -48,7 +48,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .loc-btn{padding:10px 2px;font-size:12px;border:2px solid #e8e8e8;border-radius:8px;background:#fff;cursor:pointer;text-align:center;font-weight:500}
 .loc-btn:active{transform:scale(.94)}
 .loc-btn.selected{background:#1677ff;color:#fff;border-color:#1677ff}
-.loc-btn.occupied{background:#fff7e6;border-color:#ffa940;color:#d46b08}
 .loc-label{font-size:12px;font-weight:700;color:#888;margin-bottom:4px}
 
 .btn{display:block;width:100%;padding:13px;font-size:15px;border:none;border-radius:10px;cursor:pointer;font-weight:600;margin-bottom:8px;-webkit-tap-highlight-color:transparent}
@@ -338,7 +337,6 @@ const I18N = {
     match_results: '🔍 "#" 匹配 # 条',
     goto: '→',
     barrel: '桶',
-    loc_occupied_hint: '储位 # 已有 #，覆盖？',
     from: '来自',
   },
   vi: {
@@ -419,7 +417,6 @@ const I18N = {
     match_results: '🔍 "#" có # kết quả',
     goto: '→',
     barrel: 'thùng',
-    loc_occupied_hint: 'Vị trí # đã có #, ghi đè?',
     from: 'từ',
   }
 };
@@ -471,8 +468,6 @@ function switchLang() {
 // ═══════════════════════════════════════════════════════
 
 const API = '';
-let occupiedLocations = {};
-
 // ─── 状态 ──────────────────────────────────────────────
 let inboundMode = 'single';
 let outboundMode = 'single';
@@ -499,17 +494,12 @@ function buildInboundGrid(containerId) {
   let html = '';
   for (let i = 1; i <= 99; i++) {
     const loc = 'A2-' + String(i).padStart(2, '0');
-    const occ = occupiedLocations[loc] ? ' occupied' : '';
-    const star = occupiedLocations[loc] ? '*' : '';
-    html += `<button class="loc-btn${occ}" data-loc="${loc}" onclick="pickInboundLoc('${loc}', this, '${containerId}')">${loc}${star}</button>`;
+    html += `<button class="loc-btn" data-loc="${loc}" onclick="pickInboundLoc('${loc}', this, '${containerId}')">${loc}</button>`;
   }
   el.innerHTML = html;
 }
 
 function pickInboundLoc(loc, btn, containerId) {
-  if (occupiedLocations[loc]) {
-    if (!confirm(t('loc_occupied_hint', loc, occupiedLocations[loc]))) return;
-  }
   document.querySelectorAll('#' + containerId + ' .loc-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
 
@@ -547,15 +537,6 @@ function pickDest(dest, btn, rgId, fjId) {
   } else {
     selectedBatchDest = dest;
   }
-}
-
-async function refreshOccupied() {
-  try {
-    const resp = await fetch(API + '/api/inventory');
-    const data = await resp.json();
-    occupiedLocations = {};
-    data.forEach(d => { occupiedLocations[d.location] = d.barrel_no; });
-  } catch(e) {}
 }
 
 // ─── 音效/反馈 ──────────────────────────────────────────
@@ -629,7 +610,6 @@ function inboundScan(barrelNo) {
 }
 
 async function showSingleInboundLoc(barrelNo) {
-  await refreshOccupied();
   document.getElementById('inbound-single-barrel').textContent = '🛢 ' + barrelNo;
   document.getElementById('inbound-single-loc').style.display = 'block';
   buildInboundGrid('loc-inbound-single');
@@ -664,7 +644,6 @@ async function confirmSingleInbound() {
   document.getElementById('inbound-msg').innerHTML = `<div class="result ${data.success ? 'success' : 'error'}">${msg}</div>`;
   inboundSingleBarrel = null; selectedInboundLoc = null;
   document.getElementById('inbound-single-loc').style.display = 'none';
-  refreshOccupied();
   setTimeout(() => { document.getElementById('inbound-msg').innerHTML = ''; }, 2000);
   document.getElementById('inbound-scanner').focus();
 }
@@ -698,7 +677,6 @@ function clearInboundBatch() { inboundBatch = []; renderInboundBatch(); document
 
 async function showBatchLocPicker() {
   if (inboundBatch.length === 0) return;
-  await refreshOccupied();
   document.getElementById('inbound-batch-confirm').style.display = 'block';
   buildInboundGrid('loc-inbound-batch');
   selectedBatchLoc = null;
@@ -727,7 +705,6 @@ async function confirmBatchInbound() {
   inboundBatch = []; selectedBatchLoc = null;
   renderInboundBatch();
   document.getElementById('inbound-batch-confirm').style.display = 'none';
-  refreshOccupied();
   setTimeout(() => { document.getElementById('inbound-msg').innerHTML = ''; }, 3000);
   document.getElementById('inbound-scanner').focus();
 }
@@ -799,7 +776,6 @@ async function executeSingleOutbound() {
   document.getElementById('outbound-msg').innerHTML = `<div class="result ${data.success ? 'success' : 'error'}">${msg}</div>`;
   outboundSingleBarrel = null; outboundSingleFrom = null; selectedOutboundDest = null;
   document.getElementById('outbound-single-card').style.display = 'none';
-  refreshOccupied();
   setTimeout(() => { document.getElementById('outbound-msg').innerHTML = ''; }, 2000);
   document.getElementById('outbound-scanner').focus();
 }
@@ -843,7 +819,6 @@ async function confirmBatchOutbound() {
   outboundBatch = []; selectedBatchDest = null;
   renderOutboundBatch();
   document.getElementById('outbound-batch-dest').style.display = 'none';
-  refreshOccupied();
   setTimeout(() => { document.getElementById('outbound-msg').innerHTML = ''; }, 5000);
   document.getElementById('outbound-scanner').focus();
 }
@@ -909,7 +884,6 @@ async function confirmDeleteSingle() {
   document.getElementById('delete-msg').innerHTML = `<div class="result ${data.success ? 'success' : 'error'}">${data.msg}</div>`;
   document.getElementById('delete-single-confirm').style.display = 'none';
   window._deleteBarrel = null;
-  refreshOccupied();
   setTimeout(() => { document.getElementById('delete-msg').innerHTML = ''; }, 2000);
   document.getElementById('delete-input').focus();
 }
@@ -942,7 +916,6 @@ async function confirmDeleteBatch() {
   document.getElementById('delete-msg').innerHTML = `<div class="result success">${msg}</div>`;
   deleteBatch = [];
   renderDeleteBatch();
-  refreshOccupied();
   setTimeout(() => { document.getElementById('delete-msg').innerHTML = ''; }, 3000);
   document.getElementById('delete-input').focus();
 }
@@ -956,7 +929,6 @@ function switchTab(tab) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-' + tab).classList.add('active');
 
-  if (tab === 'inbound') { refreshOccupied(); setTimeout(() => document.getElementById('inbound-scanner').focus(), 100); }
   if (tab === 'outbound') setTimeout(() => document.getElementById('outbound-scanner').focus(), 100);
   if (tab === 'query') setTimeout(() => document.getElementById('query-input').focus(), 100);
   if (tab === 'logs') loadLogs();
@@ -1064,7 +1036,6 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // ─── 启动 ──────────────────────────────────────────────
-refreshOccupied();
 document.getElementById('inbound-scanner').focus();
 </script>
 </body>
