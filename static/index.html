@@ -301,17 +301,19 @@ function parseBatchInput() {
   const raw = document.getElementById('batch-input').value;
   if (!raw.trim()) {
     batchBarrels = []; updateBatchCount();
-    // Just update the barrel info text, don't hide grid in batch mode
+    // 重置标题但不隐藏网格
     document.getElementById('loc-barrel-no').textContent = '📋 批量录入';
     document.getElementById('btn-confirm').disabled = true;
+    document.getElementById('loc-picker').classList.add('show');
     return;
   }
   // Split by newline, comma, or whitespace
   const parts = raw.split(/[\n,，\s]+/).map(s => s.trim().toUpperCase()).filter(Boolean);
   batchBarrels = [...new Set(parts)];
   updateBatchCount();
-  // Update the barrel info to reflect count
+  // 更新桶数显示，确保网格可见
   document.getElementById('loc-barrel-no').textContent = '📋 ' + t('batch_count', batchBarrels.length);
+  document.getElementById('loc-picker').classList.add('show');
 }
 function updateBatchCount() {
   const el = document.getElementById('batch-count');
@@ -381,11 +383,23 @@ function showLocPicker(barrelNo, exists, currentLocation) {
 }
 
 function hideLocPicker() {
+  if (enterMode === 'batch') {
+    // 批量模式：网格始终保持可见，仅重置选中状态
+    selectedLoc = null;
+    document.getElementById('btn-confirm').disabled = true;
+    document.getElementById('loc-barrel-no').textContent = '📋 批量录入';
+    document.getElementById('loc-barrel-no').className = 'barrel-info';
+    document.getElementById('loc-barrel-detail').textContent = t('new_barrel');
+    document.getElementById('main-scanner').value = '';
+    document.getElementById('loc-picker').classList.add('show');
+    document.getElementById('batch-input').focus();
+    return;
+  }
+  // 逐个模式：完全隐藏
   document.getElementById('loc-picker').classList.remove('show');
   currentBarrelNo = null; currentBarrelLoc = null; selectedLoc = null;
   document.getElementById('main-scanner').value = '';
-  if (enterMode === 'batch') document.getElementById('batch-input').focus();
-  else document.getElementById('main-scanner').focus();
+  document.getElementById('main-scanner').focus();
 }
 
 // ─── Save ───────────────────────────────────────────────────
