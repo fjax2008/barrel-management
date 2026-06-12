@@ -9,7 +9,6 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:#1d1d1f;min-height:100dvh;-webkit-tap-highlight-color:transparent}
 .container{max-width:600px;margin:0 auto;padding:12px}
 
-/* Header */
 .header{text-align:center;padding:16px 0 8px}
 .header h1{font-size:20px;font-weight:700;color:#1a1a2e}
 .header .sub{font-size:13px;color:#8c8c8c;margin-top:4px}
@@ -17,13 +16,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .lang-btn{background:transparent;border:1px solid #d9d9d9;border-radius:6px;padding:4px 10px;font-size:13px;cursor:pointer;color:#595959}
 .lang-btn.active{background:#1677ff;color:#fff;border-color:#1677ff}
 
-/* Card */
 .card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 
 /* Scanner */
-.scanner-input{width:100%;padding:14px 16px;font-size:18px;border:2px solid #e8e8e8;border-radius:10px;outline:none;text-align:center;letter-spacing:1px;transition:border-color .2s;background:#fafafa}
+.scanner-input{width:100%;padding:14px 16px;font-size:18px;border:2px solid #e8e8e8;border-radius:10px;outline:none;text-align:center;letter-spacing:1px;transition:border-color .15s;background:#fafafa}
 .scanner-input:focus{border-color:#1677ff;background:#fff}
 .scan-hint{text-align:center;color:#8c8c8c;font-size:12px;margin-top:6px}
+
+/* Mode toggle */
+.mode-row{display:flex;gap:6px;margin-top:8px}
+.mode-btn{flex:1;padding:8px;font-size:13px;font-weight:600;border:2px solid #e8e8e8;border-radius:8px;background:#fff;cursor:pointer;transition:all .15s}
+.mode-btn.active{background:#1677ff;color:#fff;border-color:#1677ff}
+.mode-btn.batch.active{background:#722ed1;border-color:#722ed1}
+
+/* Batch textarea */
+.batch-area{display:none;margin-top:8px}
+.batch-area.show{display:block}
+.batch-area textarea{width:100%;height:80px;padding:10px;font-size:14px;border:2px solid #d3adf7;border-radius:10px;outline:none;resize:none;font-family:monospace;letter-spacing:1px}
+.batch-area textarea:focus{border-color:#722ed1}
+.batch-count{text-align:right;font-size:12px;color:#8c8c8c;margin-top:4px}
 
 /* Location Grid */
 .loc-section{margin-top:12px;display:none}
@@ -43,8 +54,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-primary{background:#1677ff;color:#fff}
 .btn-danger{background:#ff4d4f;color:#fff}
 .btn-default{background:#f5f5f5;color:#595959}
+.btn-purple{background:#722ed1;color:#fff}
 
-/* Section title */
 .sec-title{font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 
 /* Search */
@@ -56,10 +67,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .export-row button{padding:8px 14px;font-size:13px;border:none;border-radius:8px;background:#f5f5f5;color:#595959;cursor:pointer;font-weight:500}
 
 /* Results table */
-.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;max-height:400px;overflow-y:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{padding:8px 10px;text-align:left;border-bottom:1px solid #f0f0f0}
 th{background:#fafafa;font-weight:600;color:#595959;position:sticky;top:0;white-space:nowrap}
+tr.row-a2d{background:#f9f0ff}
+tr.row-a2n{background:#fffbe6}
 .result-count{text-align:center;color:#8c8c8c;font-size:12px;margin-top:4px}
 
 /* Delete */
@@ -75,12 +88,9 @@ th{background:#fafafa;font-weight:600;color:#595959;position:sticky;top:0;white-
 .toast.info{background:#1677ff}
 @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
-/* Zone tag in table */
+/* Tags */
 .zone-tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;margin-left:4px}
 .zone-tag.special{background:#f0e6ff;color:#722ed1}
-
-/* Section divider */
-.divider{height:1px;background:#f0f0f0;margin:16px 0}
 </style>
 </head>
 <body>
@@ -91,7 +101,6 @@ th{background:#fafafa;font-weight:600;color:#595959;position:sticky;top:0;white-
 </div>
 
 <div class="container">
-  <!-- Title -->
   <div class="header">
     <h1 data-i18n="title">📦 桶号位置管理</h1>
     <div class="sub" data-i18n="subtitle">扫码录入 · 快速查询 · 一键导出</div>
@@ -99,13 +108,26 @@ th{background:#fafafa;font-weight:600;color:#595959;position:sticky;top:0;white-
 
   <!-- Main Scanner -->
   <div class="card">
-    <input type="text" class="scanner-input" id="main-scanner" 
+    <input type="text" class="scanner-input" id="main-scanner"
       data-i18n-placeholder="scan_placeholder"
       placeholder="🔍 扫码或输入桶号，按回车"
       autocomplete="off" autocorrect="off" autocapitalize="characters">
     <div class="scan-hint" data-i18n="scan_hint">扫码枪扫描后自动确认，或手动输入桶号按回车</div>
 
-    <!-- Location picker (shown after scan) -->
+    <div class="mode-row">
+      <button class="mode-btn active" data-i18n="mode_single" onclick="setMode('single')">📱 逐个录入</button>
+      <button class="mode-btn batch" data-i18n="mode_batch" onclick="setMode('batch')">📋 批量录入</button>
+    </div>
+
+    <!-- Batch textarea -->
+    <div class="batch-area" id="batch-area">
+      <textarea id="batch-input" data-i18n-placeholder="batch_placeholder"
+        placeholder="粘贴桶号，每行一个，或逗号/空格分隔"
+        autocomplete="off" autocorrect="off"></textarea>
+      <div class="batch-count" id="batch-count"></div>
+    </div>
+
+    <!-- Location picker -->
     <div class="loc-section" id="loc-picker">
       <div class="barrel-info" id="loc-barrel-no"></div>
       <div class="barrel-detail" id="loc-barrel-detail"></div>
@@ -160,77 +182,53 @@ th{background:#fafafa;font-weight:600;color:#595959;position:sticky;top:0;white-
 </div>
 
 <script>
-// ─── I18N ────────────────────────────────────────────────────────────────
+// ─── I18N ───────────────────────────────────────────────────
 const I18N = {
   zh: {
-    title: '📦 桶号位置管理',
-    subtitle: '扫码录入 · 快速查询 · 一键导出',
+    title: '📦 桶号位置管理', subtitle: '扫码录入 · 快速查询 · 一键导出',
     scan_placeholder: '🔍 扫码或输入桶号，按回车',
     scan_hint: '扫码枪扫描后自动确认，或手动输入桶号按回车',
-    confirm_save: '✅ 确认保存',
-    cancel: '取消',
-    query_title: '🔍 库存查询',
-    query_placeholder: '输入桶号或储位，回车查询',
-    query_btn: '搜索',
-    all_inventory: '📋 全部在库',
-    export_excel: '📥 导出 Excel',
-    th_barrel: '桶号',
-    th_location: '当前位置',
-    th_time: '更新时间',
-    delete_title: '🗑 删除桶号',
-    delete_placeholder: '扫码或输入桶号，回车确认删除',
-    delete_confirm_prefix: '确认删除',
-    delete_confirm_suffix: '？此操作不可撤销。',
-    confirm_delete: '⚠️ 确认删除',
-    new_barrel: '新桶号，请选择位置',
-    current_location: '当前在',
-    click_to_move: '点击其他位置可移动',
-    a2_storage: '📦 储区 A2 (01~97)',
-    a2_99_label: '🤖 自动分检区',
-    a2_98_label: '🔩 自动分检螺帽区',
-    saved: '✅ # 已保存到 #',
-    already_at: '⚠️ 桶号 # 已在 #',
-    deleted: '🗑 桶号 # 已删除',
-    not_found: '未找到桶号 #',
-    no_results: '暂无库存记录',
-    export_success: '📥 Excel 已导出',
-    query_count: '共 # 条记录',
+    mode_single: '📱 逐个录入', mode_batch: '📋 批量录入',
+    batch_placeholder: '粘贴桶号，每行一个，或逗号/空格分隔',
+    batch_count: '已识别 # 个桶号',
+    confirm_save: '✅ 确认保存', confirm_batch_save: '✅ 全部保存到此位置', cancel: '取消',
+    query_title: '🔍 库存查询', query_placeholder: '输入桶号或储位，回车查询', query_btn: '搜索',
+    all_inventory: '📋 全部在库', export_excel: '📥 导出 Excel',
+    th_barrel: '桶号', th_location: '当前位置', th_time: '更新时间',
+    delete_title: '🗑 删除桶号', delete_placeholder: '扫码或输入桶号，回车确认删除',
+    delete_confirm_prefix: '确认删除', delete_confirm_suffix: '？此操作不可撤销。', confirm_delete: '⚠️ 确认删除',
+    new_barrel: '新桶号，请选择位置', current_location: '当前在', click_to_move: '点击其他位置可移动',
+    checking: '查询中…',
+    a2_storage: '📦 储区 A2 (01~97)', a2_99_label: '🤖 自动分检区', a2_98_label: '🔩 自动分检螺帽区',
+    saved: '✅ # 已保存到 #', batch_saved: '✅ # 个桶号已保存到 #',
+    already_at: '⚠️ 桶号 # 已在 #', deleted: '🗑 桶号 # 已删除',
+    not_found: '未找到桶号 #', no_results: '暂无库存记录',
+    export_success: '📥 Excel 已导出', query_count: '共 # 条记录',
     confirm_delete_msg: '🗑 已删除桶号 #（原位置：#）',
+    select_location_first: '请先选择储位',
   },
   vi: {
-    title: '📦 Quản lý vị trí thùng',
-    subtitle: 'Quét mã · Tra cứu · Xuất Excel',
+    title: '📦 Quản lý vị trí thùng', subtitle: 'Quét mã · Tra cứu · Xuất Excel',
     scan_placeholder: '🔍 Quét hoặc nhập mã thùng, Enter',
     scan_hint: 'Máy quét tự động xác nhận, hoặc nhập mã thùng bằng tay',
-    confirm_save: '✅ Xác nhận lưu',
-    cancel: 'Hủy',
-    query_title: '🔍 Tra cứu',
-    query_placeholder: 'Nhập mã thùng hoặc vị trí, Enter',
-    query_btn: 'Tìm',
-    all_inventory: '📋 Tất cả',
-    export_excel: '📥 Xuất Excel',
-    th_barrel: 'Mã thùng',
-    th_location: 'Vị trí',
-    th_time: 'Cập nhật',
-    delete_title: '🗑 Xóa thùng',
-    delete_placeholder: 'Quét hoặc nhập mã thùng, Enter để xóa',
-    delete_confirm_prefix: 'Xác nhận xóa',
-    delete_confirm_suffix: '? Không thể hoàn tác.',
-    confirm_delete: '⚠️ Xác nhận xóa',
-    new_barrel: 'Thùng mới, chọn vị trí',
-    current_location: 'Hiện tại ở',
-    click_to_move: 'Nhấn vị trí khác để di chuyển',
-    a2_storage: '📦 Kho A2 (01~97)',
-    a2_99_label: '🤖 Khu phân loại tự động',
-    a2_98_label: '🔩 Khu phân loại đai ốc',
-    saved: '✅ # đã lưu vào #',
-    already_at: '⚠️ Thùng # đã ở #',
-    deleted: '🗑 Đã xóa thùng #',
-    not_found: 'Không tìm thấy thùng #',
-    no_results: 'Chưa có dữ liệu',
-    export_success: '📥 Đã xuất # bản ghi',
-    query_count: 'Tổng # bản ghi',
+    mode_single: '📱 Từng cái', mode_batch: '📋 Hàng loạt',
+    batch_placeholder: 'Dán mã thùng, mỗi dòng một mã, hoặc cách nhau dấu phẩy',
+    batch_count: 'Đã nhận # mã',
+    confirm_save: '✅ Xác nhận lưu', confirm_batch_save: '✅ Lưu tất cả vào đây', cancel: 'Hủy',
+    query_title: '🔍 Tra cứu', query_placeholder: 'Nhập mã thùng hoặc vị trí, Enter', query_btn: 'Tìm',
+    all_inventory: '📋 Tất cả', export_excel: '📥 Xuất Excel',
+    th_barrel: 'Mã thùng', th_location: 'Vị trí', th_time: 'Cập nhật',
+    delete_title: '🗑 Xóa thùng', delete_placeholder: 'Quét hoặc nhập mã thùng, Enter để xóa',
+    delete_confirm_prefix: 'Xác nhận xóa', delete_confirm_suffix: '? Không thể hoàn tác.', confirm_delete: '⚠️ Xác nhận xóa',
+    new_barrel: 'Thùng mới, chọn vị trí', current_location: 'Hiện tại ở', click_to_move: 'Nhấn vị trí khác để di chuyển',
+    checking: 'Đang tra…',
+    a2_storage: '📦 Kho A2 (01~97)', a2_99_label: '🤖 Khu phân loại tự động', a2_98_label: '🔩 Khu phân loại đai ốc',
+    saved: '✅ # đã lưu vào #', batch_saved: '✅ # mã đã lưu vào #',
+    already_at: '⚠️ Thùng # đã ở #', deleted: '🗑 Đã xóa thùng #',
+    not_found: 'Không tìm thấy thùng #', no_results: 'Chưa có dữ liệu',
+    export_success: '📥 Xuất Excel thành công', query_count: 'Tổng # bản ghi',
     confirm_delete_msg: '🗑 Đã xóa thùng # (vị trí cũ: #)',
+    select_location_first: 'Hãy chọn vị trí trước',
   }
 };
 
@@ -241,58 +239,82 @@ function t(key, ...args) {
   return s;
 }
 function setLang(l) {
-  lang = l;
-  localStorage.setItem('barrel-lang', l);
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.trim().startsWith(l === 'zh' ? '中文' : 'VN')));
+  lang = l; localStorage.setItem('barrel-lang', l);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.trim().startsWith(l==='zh'?'中文':'VN')));
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
+  // Refresh confirm button text
+  const bc = document.getElementById('btn-confirm');
+  if (enterMode === 'batch') bc.innerHTML = '✅ <span>' + t('confirm_batch_save') + '</span>';
+  else bc.innerHTML = '✅ <span>' + t('confirm_save') + '</span>';
 }
 setLang(lang);
 
-// ─── API ──────────────────────────────────────────────────────────────────
+// ─── Globals ────────────────────────────────────────────────
 const API = '';
+let enterMode = 'single';  // 'single' | 'batch'
+let currentBarrelNo = null, currentBarrelLoc = null, selectedLoc = null;
+let batchBarrels = [];
 
 function showToast(msg, type) {
   const el = document.createElement('div');
-  el.className = 'toast ' + type;
-  el.textContent = msg;
+  el.className = 'toast ' + type; el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 2000);
 }
-
-// ─── Beep ─────────────────────────────────────────────────────────────────
 function beep() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator(); const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.frequency.value = 800; osc.type = 'sine'; gain.gain.value = 0.15;
-    osc.start(); osc.stop(ctx.currentTime + 0.12);
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value=800; o.type='sine'; g.gain.value=0.15;
+    o.start(); o.stop(ctx.currentTime+0.12);
   } catch(e) {}
 }
 
-// ─── Location Picker ──────────────────────────────────────────────────────
-const A2_CODES = { '自动分检区': '自动分检区', '自动分检螺帽区': '自动分检螺帽区' };
-let currentBarrelNo = null;
-let currentBarrelLoc = null;
-let selectedLoc = null;
-
-function buildLocGrid() {
-  const el = document.getElementById('loc-grid');
-  let html = '';
-  // A2-01 ~ A2-97
-  html += '<div class="loc-group-label">' + t('a2_storage') + '</div>';
-  for (let i = 1; i <= 97; i++) {
-    const loc = 'A2-' + String(i).padStart(2, '0');
-    html += `<button class="loc-btn" data-loc="${loc}" onclick="pickLoc('${loc}', this)">${loc}</button>`;
+// ─── Mode Toggle ────────────────────────────────────────────
+function setMode(m) {
+  enterMode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.mode-btn' + (m==='batch'?'.batch':':not(.batch)')).classList.add('active');
+  document.getElementById('batch-area').classList.toggle('show', m==='batch');
+  if (m === 'batch') {
+    document.getElementById('batch-input').focus();
+  } else {
+    document.getElementById('main-scanner').focus();
   }
-  // A2-99 & A2-98 (special)
-  html += '<div class="loc-group-label">🤖 A2-99 | 🔩 A2-98</div>';
-  html += `<button class="loc-btn special" data-loc="自动分检区" onclick="pickLoc('自动分检区', this)">${t('a2_99_label')}</button>`;
-  html += `<button class="loc-btn special" data-loc="自动分检螺帽区" onclick="pickLoc('自动分检螺帽区', this)">${t('a2_98_label')}</button>`;
-  el.innerHTML = html;
+  hideLocPicker();
 }
 
+// ─── Batch Input Parser ─────────────────────────────────────
+function parseBatchInput() {
+  const raw = document.getElementById('batch-input').value;
+  if (!raw.trim()) { batchBarrels = []; updateBatchCount(); return; }
+  // Split by newline, comma, or whitespace
+  const parts = raw.split(/[\n,，\s]+/).map(s => s.trim().toUpperCase()).filter(Boolean);
+  // Deduplicate
+  batchBarrels = [...new Set(parts)];
+  updateBatchCount();
+}
+function updateBatchCount() {
+  const el = document.getElementById('batch-count');
+  el.textContent = batchBarrels.length ? t('batch_count', batchBarrels.length) : '';
+}
+document.getElementById('batch-input').addEventListener('input', parseBatchInput);
+
+// ─── Location Grid ──────────────────────────────────────────
+function buildLocGrid() {
+  const el = document.getElementById('loc-grid');
+  let h = '<div class="loc-group-label">' + t('a2_storage') + '</div>';
+  for (let i = 1; i <= 97; i++) {
+    const loc = 'A2-' + String(i).padStart(2, '0');
+    h += `<button class="loc-btn" data-loc="${loc}" onclick="pickLoc('${loc}', this)">${loc}</button>`;
+  }
+  h += '<div class="loc-group-label">🤖 A2-99 | 🔩 A2-98</div>';
+  h += `<button class="loc-btn special" data-loc="自动分检区" onclick="pickLoc('自动分检区', this)">${t('a2_99_label')}</button>`;
+  h += `<button class="loc-btn special" data-loc="自动分检螺帽区" onclick="pickLoc('自动分检螺帽区', this)">${t('a2_98_label')}</button>`;
+  el.innerHTML = h;
+}
 function pickLoc(loc, btn) {
   document.querySelectorAll('#loc-grid .loc-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
@@ -301,24 +323,24 @@ function pickLoc(loc, btn) {
 }
 
 function showLocPicker(barrelNo, exists, currentLocation) {
-  currentBarrelNo = barrelNo;
-  currentBarrelLoc = currentLocation;
-  selectedLoc = null;
+  currentBarrelNo = barrelNo; currentBarrelLoc = currentLocation; selectedLoc = null;
   document.getElementById('btn-confirm').disabled = true;
+  const bc = document.getElementById('btn-confirm');
+  if (enterMode === 'batch') {
+    bc.className = 'btn btn-purple';
+    bc.innerHTML = '✅ <span>' + t('confirm_batch_save') + '</span>';
+  } else {
+    bc.className = 'btn btn-primary';
+    bc.innerHTML = '✅ <span>' + t('confirm_save') + '</span>';
+  }
 
   const info = document.getElementById('loc-barrel-no');
   const detail = document.getElementById('loc-barrel-detail');
-
   info.textContent = '🛢 ' + barrelNo;
-  if (exists) {
-    info.className = 'barrel-info existing';
-    const displayLoc = (currentLocation === '自动分检区' || currentLocation === '自动分检螺帽区') 
-      ? currentLocation : currentLocation;
-    detail.textContent = t('current_location') + ' ' + displayLoc + ' — ' + t('click_to_move');
-  } else {
-    info.className = 'barrel-info';
-    detail.textContent = t('new_barrel');
-  }
+  info.className = 'barrel-info' + (exists ? ' existing' : '');
+  detail.textContent = exists
+    ? t('current_location') + ' ' + currentLocation + ' — ' + t('click_to_move')
+    : t('new_barrel');
 
   buildLocGrid();
   document.getElementById('loc-picker').classList.add('show');
@@ -327,69 +349,78 @@ function showLocPicker(barrelNo, exists, currentLocation) {
 
 function hideLocPicker() {
   document.getElementById('loc-picker').classList.remove('show');
-  currentBarrelNo = null;
-  currentBarrelLoc = null;
-  selectedLoc = null;
+  currentBarrelNo = null; currentBarrelLoc = null; selectedLoc = null;
   document.getElementById('main-scanner').value = '';
-  document.getElementById('main-scanner').focus();
+  if (enterMode === 'batch') document.getElementById('batch-input').focus();
+  else document.getElementById('main-scanner').focus();
 }
 
+// ─── Save ───────────────────────────────────────────────────
 async function confirmSave() {
+  if (enterMode === 'batch') return confirmBatchSave();
   if (!currentBarrelNo || !selectedLoc) return;
   try {
     const resp = await fetch(API + '/api/inbound', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ barrel_no: currentBarrelNo, location: selectedLoc })
     });
     const data = await resp.json();
     beep();
     const msg = data.message || '';
-    if (msg.includes('已在')) {
-      showToast(t('already_at', currentBarrelNo, selectedLoc), 'error');
-    } else {
-      showToast(t('saved', currentBarrelNo, selectedLoc), 'success');
-    }
+    if (msg.includes('已在')) showToast(t('already_at', currentBarrelNo, selectedLoc), 'error');
+    else showToast(t('saved', currentBarrelNo, selectedLoc), 'success');
     hideLocPicker();
-  } catch(e) {
-    showToast(e.message, 'error');
-  }
+  } catch(e) { showToast(e.message, 'error'); }
 }
 
-// ─── Main Scanner Handler ─────────────────────────────────────────────────
-document.getElementById('main-scanner').addEventListener('keydown', async function(e) {
+async function confirmBatchSave() {
+  if (!batchBarrels.length) return;
+  if (!selectedLoc) { showToast(t('select_location_first'), 'error'); return; }
+  try {
+    const resp = await fetch(API + '/api/inbound/batch', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ barrels: batchBarrels, location: selectedLoc })
+    });
+    const data = await resp.json();
+    beep();
+    showToast(t('batch_saved', batchBarrels.length, selectedLoc), 'success');
+    document.getElementById('batch-input').value = '';
+    batchBarrels = [];
+    updateBatchCount();
+    hideLocPicker();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ─── Main Scanner (single mode) ─────────────────────────────
+document.getElementById('main-scanner').addEventListener('keydown', function(e) {
   if (e.key !== 'Enter') return;
   const val = this.value.trim().toUpperCase();
   if (!val) return;
   beep();
-
-  try {
-    const resp = await fetch(API + '/api/inventory/' + encodeURIComponent(val));
-    if (resp.status === 404) {
-      // New barrel
-      showLocPicker(val, false, null);
-    } else {
-      const data = await resp.json();
-      if (data && data.barrel_no) {
-        showLocPicker(val, true, data.location);
-      } else {
-        showLocPicker(val, false, null);
+  if (enterMode === 'batch') { this.value = ''; this.focus(); return; }
+  // Optimistic: show picker immediately, check backend in background
+  showLocPicker(val, false, null);
+  // Async check if barrel exists
+  fetch(API + '/api/inventory/' + encodeURIComponent(val))
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if (data && data.barrel_no && data.barrel_no === val) {
+        document.getElementById('loc-barrel-no').className = 'barrel-info existing';
+        document.getElementById('loc-barrel-detail').textContent = t('current_location') + ' ' + data.location + ' — ' + t('click_to_move');
+        currentBarrelLoc = data.location;
       }
-    }
-  } catch(e) {
-    showLocPicker(val, false, null);
-  }
+    }).catch(() => {});
+  this.value = '';
 });
 
-// ─── Confirm / Cancel ─────────────────────────────────────────────────────
+// ─── Confirm / Cancel ───────────────────────────────────────
 document.getElementById('btn-confirm').addEventListener('click', confirmSave);
 document.getElementById('btn-cancel').addEventListener('click', hideLocPicker);
 
-// ─── Query ────────────────────────────────────────────────────────────────
+// ─── Query ──────────────────────────────────────────────────
 document.getElementById('query-input').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') doQuery();
 });
-
 async function doQuery() {
   const val = document.getElementById('query-input').value.trim();
   if (!val) { showAll(); return; }
@@ -398,76 +429,56 @@ async function doQuery() {
     const data = await resp.json();
     const items = data.items || data || [];
     const q = val.toUpperCase();
-    const filtered = items.filter(d =>
-      (d.barrel_no || '').toUpperCase().includes(q) ||
-      (d.location || '').includes(val)
-    );
-    renderResults(filtered);
+    renderResults(items.filter(d => (d.barrel_no||'').toUpperCase().includes(q) || (d.location||'').includes(val)));
   } catch(e) { showToast(e.message, 'error'); }
 }
-
 async function showAll() {
   try {
     const resp = await fetch(API + '/api/inventory');
     const data = await resp.json();
-    renderResults(data.items || data || []);
+    renderResults(data.items||data||[]);
   } catch(e) { showToast(e.message, 'error'); }
 }
-
 function renderResults(items) {
   const wrap = document.getElementById('query-results');
   const tbody = document.querySelector('#results-table tbody');
   const count = document.getElementById('result-count');
-
-  if (!items || items.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#8c8c8c;padding:20px">' + t('no_results') + '</td></tr>';
+  if (!items || !items.length) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#8c8c8c;padding:20px">'+t('no_results')+'</td></tr>';
     count.textContent = '';
   } else {
     tbody.innerHTML = items.map(d => {
-      const locDisplay = displayLocation(d.location);
-      return `<tr><td style="font-weight:600">${d.barrel_no}</td><td>${locDisplay}</td><td>${d.updated_at || d.time || ''}</td></tr>`;
+      let rc = '', ld = d.location||'';
+      if (ld === '自动分检区') { rc = 'row-a2d'; ld = '<span class="zone-tag special">🤖 '+ld+'</span>'; }
+      else if (ld === '自动分检螺帽区') { rc = 'row-a2n'; ld = '<span class="zone-tag special">🔩 '+ld+'</span>'; }
+      return `<tr class="${rc}"><td style="font-weight:600">${d.barrel_no}</td><td>${ld}</td><td>${d.updated_at||d.time||''}</td></tr>`;
     }).join('');
     count.textContent = t('query_count', items.length);
   }
   wrap.style.display = 'block';
 }
-
-function displayLocation(loc) {
-  if (!loc) return '';
-  if (loc === '自动分检区') return '<span class="zone-tag special">🤖 ' + loc + '</span>';
-  if (loc === '自动分检螺帽区') return '<span class="zone-tag special">🔩 ' + loc + '</span>';
-  return loc;
-}
-
 async function exportExcel() {
   try {
     const resp = await fetch(API + '/api/export');
     const blob = await resp.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = 'barrel_inventory_' + new Date().toISOString().slice(0,10) + '.xlsx';
-    a.click();
-    URL.revokeObjectURL(url);
+    a.href = url; a.download = 'barrel_inventory_'+new Date().toISOString().slice(0,10)+'.xlsx';
+    a.click(); URL.revokeObjectURL(url);
     showToast(t('export_success'), 'success');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
-// ─── Delete ───────────────────────────────────────────────────────────────
+// ─── Delete ─────────────────────────────────────────────────
 let deleteBarrelNo = null;
-
 document.getElementById('delete-scanner').addEventListener('keydown', async function(e) {
   if (e.key !== 'Enter') return;
   const val = this.value.trim().toUpperCase();
-  if (!val) return;
-  beep();
-
+  if (!val) return; beep();
   try {
     const resp = await fetch(API + '/api/inventory/' + encodeURIComponent(val));
     if (resp.status === 404) {
       showToast(t('not_found', val), 'error');
-      this.value = '';
-      deleteBarrelNo = null;
     } else {
       const data = await resp.json();
       deleteBarrelNo = val;
@@ -475,23 +486,16 @@ document.getElementById('delete-scanner').addEventListener('keydown', async func
       document.getElementById('delete-info').style.display = 'block';
       document.getElementById('btn-delete-confirm').style.display = 'block';
     }
-  } catch(e) {
-    showToast(e.message, 'error');
-    this.value = '';
-  }
+  } catch(e) { showToast(e.message, 'error'); }
+  this.value = '';
 });
-
 document.getElementById('btn-delete-confirm').addEventListener('click', async function() {
   if (!deleteBarrelNo) return;
   try {
-    const resp = await fetch(API + '/api/barrel/' + encodeURIComponent(deleteBarrelNo), { method: 'DELETE' });
+    const resp = await fetch(API + '/api/barrel/' + encodeURIComponent(deleteBarrelNo), {method:'DELETE'});
     const data = await resp.json();
-    beep();
-    showToast(t('confirm_delete_msg', deleteBarrelNo, data.location || '?'), 'success');
-  } catch(e) {
-    showToast(e.message, 'error');
-  }
-  // Reset
+    beep(); showToast(t('confirm_delete_msg', deleteBarrelNo, data.location||'?'), 'success');
+  } catch(e) { showToast(e.message, 'error'); }
   deleteBarrelNo = null;
   document.getElementById('delete-scanner').value = '';
   document.getElementById('delete-info').style.display = 'none';
@@ -499,18 +503,14 @@ document.getElementById('btn-delete-confirm').addEventListener('click', async fu
   document.getElementById('delete-scanner').focus();
 });
 
-// ─── Init ─────────────────────────────────────────────────────────────────
+// ─── Init ───────────────────────────────────────────────────
 buildLocGrid();
 document.getElementById('main-scanner').focus();
-
-// Re-focus main scanner if user clicks away
 document.addEventListener('click', function(e) {
-  if (!e.target.closest('input') && !e.target.closest('button') && !e.target.closest('.lang-btn')) {
-    document.getElementById('main-scanner').focus();
+  if (!e.target.closest('input') && !e.target.closest('textarea') && !e.target.closest('button') && !e.target.closest('.lang-btn')) {
+    (enterMode==='batch' ? document.getElementById('batch-input') : document.getElementById('main-scanner')).focus();
   }
 });
-
-// Show all on load
 showAll();
 </script>
 </body>
