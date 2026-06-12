@@ -1,0 +1,4 @@
+barrel.db
+__pycache__/
+*.pyc
+/tmp/

@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>生管部在制品桶号管理</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f2f5;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+.header{background:linear-gradient(135deg,#1677ff,#0958d9);color:#fff;padding:12px 16px;text-align:center;font-size:16px;font-weight:700;letter-spacing:1px;flex-shrink:0}
+.tabs{display:flex;background:#fff;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.tab{flex:1;padding:12px 4px;text-align:center;font-size:13px;border:none;background:none;color:#888;font-weight:600;cursor:pointer;border-bottom:3px solid transparent}
+.tab.active{color:#1677ff;border-bottom-color:#1677ff}
+.content{flex:1;overflow-y:auto;padding:12px;padding-bottom:16px}
+.panel{display:none}
+.panel.active{display:block}
+.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.card-title{font-size:14px;font-weight:700;margin-bottom:8px;color:#222}
+.mode-row{display:flex;gap:6px;margin-bottom:8px}
+.mode-btn{flex:1;padding:8px;font-size:13px;border:1px solid #d9d9d9;border-radius:8px;background:#fff;cursor:pointer;text-align:center;font-weight:500}
+.mode-btn.active{background:#1677ff;color:#fff;border-color:#1677ff}
+
+/* Scan zone */
+.scan-zone{background:#fff;border:3px dashed #1677ff;border-radius:14px;padding:20px 16px;text-align:center;margin-bottom:10px;transition:.15s}
+.scan-zone.flash{background:#f6ffed;border-color:#52c41a}
+.scan-zone .scan-icon{font-size:40px;margin-bottom:8px}
+.scan-zone .scan-status{font-size:13px;color:#888;margin-bottom:6px}
+.scan-zone .last-scan{font-size:22px;font-weight:800;color:#1677ff;min-height:30px;word-break:break-all}
+.scan-zone .last-scan.empty{color:#ccc;font-size:16px;font-weight:400}
+.scan-input-real{width:100%;padding:14px;font-size:18px;border:2px solid #d9d9d9;border-radius:10px;text-align:center;background:#fafafa;margin-bottom:4px}
+.scan-input-real:focus{outline:none;border-color:#1677ff;background:#fff}
+.scan-hint{font-size:11px;color:#bbb}
+
+/* Batch */
+.batch-section{margin-bottom:10px}
+.batch-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.batch-count{font-size:13px;color:#888;font-weight:600}
+.batch-list{max-height:160px;overflow-y:auto}
+.batch-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#f6f8fa;border-radius:8px;margin-bottom:3px;font-size:13px}
+.batch-item .del{color:#ff4d4f;font-size:18px;cursor:pointer;padding:2px 6px;border:none;background:none}
+
+/* Location / Destination grids */
+.loc-section{margin-bottom:10px}
+.loc-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:8px}
+.loc-btn{padding:10px 2px;font-size:12px;border:2px solid #e8e8e8;border-radius:8px;background:#fff;cursor:pointer;text-align:center;font-weight:500}
+.loc-btn:active{transform:scale(.94)}
+.loc-btn.selected{background:#1677ff;color:#fff;border-color:#1677ff}
+.loc-btn.occupied{background:#fff7e6;border-color:#ffa940;color:#d46b08}
+.loc-label{font-size:12px;font-weight:700;color:#888;margin-bottom:4px}
+
+.btn{display:block;width:100%;padding:13px;font-size:15px;border:none;border-radius:10px;cursor:pointer;font-weight:600;margin-bottom:8px;-webkit-tap-highlight-color:transparent}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:#1677ff;color:#fff}
+.btn-success{background:#52c41a;color:#fff}
+.btn-danger{background:#ff4d4f;color:#fff}
+.btn-warning{background:#fa8c16;color:#fff}
+.btn-default{background:#f5f5f5;color:#333;border:1px solid #e0e0e0}
+.btn-sm{padding:8px 14px;font-size:13px;width:auto;display:inline-block}
+.btn:disabled{opacity:.4;pointer-events:none}
+
+.result{padding:10px 12px;border-radius:8px;margin:8px 0;font-size:13px;line-height:1.5}
+.result.success{background:#f6ffed;border:1px solid #b7eb8f;color:#389e0d}
+.result.error{background:#fff2f0;border:1px solid #ffccc7;color:#cf1322}
+.result.info{background:#e6f4ff;border:1px solid #91caff;color:#0958d9}
+
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:7px 5px;text-align:left;border-bottom:1px solid #f0f0f0}
+th{background:#fafafa;font-weight:600;color:#888;font-size:11px}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#999}
+.info-value{color:#222;font-weight:600;text-align:right}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
+.badge-in{background:#f6ffed;color:#52c41a}
+.badge-out{background:#fff2f0;color:#ff4d4f}
+.badge-rg{background:#fff7e6;color:#d46b08}
+.badge-fj{background:#e6f4ff;color:#0958d9}
+.beep-dot{display:inline-block;width:8px;height:8px;background:#52c41a;border-radius:50%;margin-right:4px;animation:pulse .8s ease-out}
+@keyframes pulse{0%{transform:scale(1);opacity:1}100%{transform:scale(2);opacity:0}}
+
+.zone-tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;margin-left:4px}
+.zone-tag.rg{background:#fff7e6;color:#d46b08}
+.zone-tag.fj{background:#e6f4ff;color:#0958d9}
+</style>
+</head>
+<body>
+
+<div class="header">🏭 生管部在制品桶号管理</div>
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('inbound')">📥 入库</button>
+  <button class="tab" onclick="switchTab('outbound')">📤 出库</button>
+  <button class="tab" onclick="switchTab('query')">🔍 查询</button>
+  <button class="tab" onclick="switchTab('logs')">📋 记录</button>
+</div>
+<div class="content">
+
+<!-- ═══════════ 入库 ═══════════ -->
+<div id="panel-inbound" class="panel active">
+  <div class="mode-row">
+    <button class="mode-btn active" onclick="setInboundMode('single')">🔹 单桶</button>
+    <button class="mode-btn" onclick="setInboundMode('batch')">🔶 批量</button>
+  </div>
+
+  <div class="scan-zone" id="inbound-scan-zone">
+    <div class="scan-icon">📷</div>
+    <div class="scan-status" id="inbound-scan-status">等待扫码...</div>
+    <div class="last-scan empty" id="inbound-last-scan">--</div>
+    <input type="text" class="scan-input-real" id="inbound-scanner" placeholder="扫码枪扫这里..." autocomplete="off">
+    <div class="scan-hint">扫码后自动确认，无需点击</div>
+  </div>
+
+  <!-- 批量列表 -->
+  <div class="card batch-section" id="inbound-batch-card" style="display:none">
+    <div class="batch-header">
+      <span class="batch-count" id="inbound-batch-count">已扫 0 桶</span>
+      <button class="btn-default btn-sm" onclick="clearInboundBatch()">清空</button>
+    </div>
+    <div class="batch-list" id="inbound-batch-list"></div>
+  </div>
+
+  <!-- 单桶入库：储位选择 -->
+  <div class="card loc-section" id="inbound-single-loc" style="display:none">
+    <div class="card-title">📍 <span id="inbound-single-barrel" style="color:#1677ff">--</span> → 选择储位</div>
+    <div class="loc-label">📦 入库储区 A2 (01~99)</div>
+    <div class="loc-grid" id="loc-inbound-single"></div>
+    <button class="btn btn-success" id="btn-inbound-single" disabled onclick="confirmSingleInbound()">✅ 确认入库</button>
+    <button class="btn btn-default" onclick="cancelSingleInbound()">取消</button>
+  </div>
+
+  <!-- 批量入库：储位选择 -->
+  <div id="inbound-batch-confirm" style="display:none">
+    <div class="card loc-section">
+      <div class="card-title">📍 全部入库到哪个储位？</div>
+      <div class="loc-label">📦 入库储区 A2 (01~99)</div>
+      <div class="loc-grid" id="loc-inbound-batch"></div>
+      <button class="btn btn-success" id="btn-inbound-batch" disabled onclick="confirmBatchInbound()">✅ 全部入库</button>
+      <button class="btn btn-default" onclick="cancelBatchInbound()">取消</button>
+    </div>
+  </div>
+
+  <div id="inbound-msg"></div>
+</div>
+
+<!-- ═══════════ 出库 ═══════════ -->
+<div id="panel-outbound" class="panel">
+  <div class="mode-row">
+    <button class="mode-btn active" onclick="setOutboundMode('single')">🔹 单桶</button>
+    <button class="mode-btn" onclick="setOutboundMode('batch')">🔶 批量</button>
+  </div>
+
+  <div class="scan-zone" id="outbound-scan-zone">
+    <div class="scan-icon">📷</div>
+    <div class="scan-status" id="outbound-scan-status">等待扫码...</div>
+    <div class="last-scan empty" id="outbound-last-scan">--</div>
+    <input type="text" class="scan-input-real" id="outbound-scanner" placeholder="扫码枪扫这里..." autocomplete="off">
+    <div class="scan-hint">扫码后自动确认，无需点击</div>
+  </div>
+
+  <!-- 单桶出库：显示储位 + 选目的地 -->
+  <div class="card" id="outbound-single-card" style="display:none">
+    <div style="text-align:center;padding:4px 0 8px">
+      <div style="font-size:20px;font-weight:800;color:#1677ff" id="outbound-single-barrel">--</div>
+      <div style="font-size:13px;color:#888;margin:4px 0">当前储位</div>
+      <div style="font-size:20px;font-weight:700;color:#52c41a" id="outbound-single-from">--</div>
+    </div>
+    <div class="card-title">🚚 选择出库目的地</div>
+    <div class="loc-label">👤 人工区</div>
+    <div class="loc-grid" id="dest-rg-single"></div>
+    <div class="loc-label">🤖 自动分检区</div>
+    <div class="loc-grid" id="dest-fj-single"></div>
+    <button class="btn btn-default" onclick="cancelOutboundSingle()">取消</button>
+  </div>
+
+  <!-- 批量出库列表 -->
+  <div class="card batch-section" id="outbound-batch-card" style="display:none">
+    <div class="batch-header">
+      <span class="batch-count" id="outbound-batch-count">已扫 0 桶</span>
+      <button class="btn-default btn-sm" onclick="clearOutboundBatch()">清空</button>
+    </div>
+    <div class="batch-list" id="outbound-batch-list"></div>
+  </div>
+
+  <!-- 批量出库：目的地选择 -->
+  <div id="outbound-batch-dest" style="display:none">
+    <div class="card">
+      <div class="card-title">🚚 全部出库到哪个目的地？</div>
+      <div class="loc-label">👤 人工区</div>
+      <div class="loc-grid" id="dest-rg-batch"></div>
+      <div class="loc-label">🤖 自动分检区</div>
+      <div class="loc-grid" id="dest-fj-batch"></div>
+      <button class="btn btn-danger" onclick="confirmBatchOutbound()">📤 全部出库</button>
+      <button class="btn btn-default" onclick="cancelBatchOutbound()">取消</button>
+    </div>
+  </div>
+
+  <div id="outbound-msg"></div>
+</div>
+
+<!-- ═══════════ 查询 ═══════════ -->
+<div id="panel-query" class="panel">
+  <div class="card">
+    <div class="card-title">🔍 库存查询</div>
+    <input type="text" class="scan-input-real" id="query-input" placeholder="输入桶号或储位，回车查询" style="margin-bottom:8px">
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-default btn-sm" style="flex:1" onclick="loadAllInventory()">📦 全部在库</button>
+      <a class="btn btn-warning btn-sm" href="/api/export" style="flex:1;text-decoration:none;text-align:center">📥 导出 Excel</a>
+    </div>
+    <div id="query-result"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🗑 删除桶号</div>
+    <div class="mode-row">
+      <button class="mode-btn active" onclick="setDeleteMode('single')">🔹 单桶</button>
+      <button class="mode-btn" onclick="setDeleteMode('batch')">🔶 批量</button>
+    </div>
+    <input type="text" class="scan-input-real" id="delete-input" placeholder="扫码或输入桶号，回车确认" style="margin-bottom:8px">
+    <!-- 单桶确认 -->
+    <div id="delete-single-confirm" style="display:none">
+      <div class="result info" id="delete-single-info"></div>
+      <button class="btn btn-danger" onclick="confirmDeleteSingle()">⚠️ 确认删除此桶号</button>
+      <button class="btn btn-default" onclick="cancelDelete()">取消</button>
+    </div>
+    <!-- 批量列表 -->
+    <div id="delete-batch-section" style="display:none">
+      <div class="batch-header">
+        <span class="batch-count" id="delete-batch-count">已选 0 桶</span>
+        <button class="btn-default btn-sm" onclick="clearDeleteBatch()">清空</button>
+      </div>
+      <div class="batch-list" id="delete-batch-list"></div>
+      <button class="btn btn-danger" onclick="confirmDeleteBatch()">⚠️ 确认删除全部</button>
+    </div>
+    <div id="delete-msg"></div>
+  </div>
+</div>
+
+<!-- ═══════════ 记录 ═══════════ -->
+<div id="panel-logs" class="panel">
+  <div class="card">
+    <div class="card-title">📋 最近操作记录</div>
+    <div id="logs-content"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const API = '';
+let occupiedLocations = {};
+
+// ─── 状态 ──────────────────────────────────────────────
+let inboundMode = 'single';
+let outboundMode = 'single';
+let deleteMode = 'single';
+let inboundBatch = [];
+let outboundBatch = [];
+let deleteBatch = [];
+let inboundSingleBarrel = null;
+let outboundSingleBarrel = null;
+let outboundSingleFrom = null;
+let selectedInboundLoc = null;
+let selectedBatchLoc = null;
+let selectedOutboundDest = null;
+let selectedBatchDest = null;
+
+// ─── 储位/目的地网格生成 ────────────────────────────────
+
+// 入库储位：仅 A2-01 ~ A2-30
+function buildInboundGrid(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  let html = '';
+  for (let i = 1; i <= 99; i++) {
+    const loc = 'A2-' + String(i).padStart(2, '0');
+    const occ = occupiedLocations[loc] ? ' occupied' : '';
+    const star = occupiedLocations[loc] ? '*' : '';
+    html += `<button class="loc-btn${occ}" data-loc="${loc}" onclick="pickInboundLoc('${loc}', this, '${containerId}')">${loc}${star}</button>`;
+  }
+  el.innerHTML = html;
+}
+
+function pickInboundLoc(loc, btn, containerId) {
+  if (occupiedLocations[loc]) {
+    if (!confirm(`储位 ${loc} 已有 ${occupiedLocations[loc]}，覆盖？`)) return;
+  }
+  document.querySelectorAll('#' + containerId + ' .loc-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+
+  if (containerId === 'loc-inbound-single') {
+    selectedInboundLoc = loc;
+    document.getElementById('btn-inbound-single').disabled = false;
+  } else {
+    selectedBatchLoc = loc;
+    document.getElementById('btn-inbound-batch').disabled = false;
+  }
+}
+
+// 出库目的地：RG01~10, FJ01~10
+function buildDestGrid(rgContainerId, fjContainerId) {
+  const rgEl = document.getElementById(rgContainerId);
+  const fjEl = document.getElementById(fjContainerId);
+  if (!rgEl || !fjEl) return;
+  let rgHtml = '', fjHtml = '';
+  for (let i = 1; i <= 10; i++) {
+    const rg = 'RG' + String(i).padStart(2, '0');
+    const fj = 'FJ' + String(i).padStart(2, '0');
+    rgHtml += `<button class="loc-btn" data-dest="${rg}" onclick="pickDest('${rg}', this, '${rgContainerId}', '${fjContainerId}')">${rg}</button>`;
+    fjHtml += `<button class="loc-btn" data-dest="${fj}" onclick="pickDest('${fj}', this, '${rgContainerId}', '${fjContainerId}')">${fj}</button>`;
+  }
+  rgEl.innerHTML = rgHtml;
+  fjEl.innerHTML = fjHtml;
+}
+
+function pickDest(dest, btn, rgId, fjId) {
+  document.querySelectorAll('#' + rgId + ' .loc-btn, #' + fjId + ' .loc-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+
+  if (rgId === 'dest-rg-single') {
+    selectedOutboundDest = dest;
+    // 选好目的地立即出库
+    executeSingleOutbound();
+  } else {
+    selectedBatchDest = dest;
+  }
+}
+
+async function refreshOccupied() {
+  try {
+    const resp = await fetch(API + '/api/inventory');
+    const data = await resp.json();
+    occupiedLocations = {};
+    data.forEach(d => { occupiedLocations[d.location] = d.barrel_no; });
+  } catch(e) {}
+}
+
+// ─── 音效/反馈 ──────────────────────────────────────────
+
+function beep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 800; osc.type = 'sine'; gain.gain.value = 0.15;
+    osc.start(); osc.stop(ctx.currentTime + 0.12);
+  } catch(e) {}
+}
+
+function flashZone(id) {
+  const el = document.getElementById(id);
+  el.classList.add('flash');
+  setTimeout(() => el.classList.remove('flash'), 300);
+}
+
+function showLastScan(id, text) {
+  const el = document.getElementById(id);
+  el.textContent = '🛢 ' + text;
+  el.classList.remove('empty');
+}
+
+// ─── 模式切换 ──────────────────────────────────────────
+
+function setInboundMode(mode) {
+  inboundMode = mode;
+  document.querySelectorAll('#panel-inbound .mode-btn').forEach((b,i) =>
+    b.classList.toggle('active', i === (mode === 'single' ? 0 : 1)));
+  document.getElementById('inbound-single-loc').style.display = 'none';
+  document.getElementById('inbound-batch-card').style.display = mode === 'batch' ? 'block' : 'none';
+  document.getElementById('inbound-batch-confirm').style.display = 'none';
+  inboundSingleBarrel = null; selectedInboundLoc = null; selectedBatchLoc = null;
+  if (mode === 'batch') renderInboundBatch();
+  document.getElementById('inbound-scanner').focus();
+}
+
+function setOutboundMode(mode) {
+  outboundMode = mode;
+  document.querySelectorAll('#panel-outbound .mode-btn').forEach((b,i) =>
+    b.classList.toggle('active', i === (mode === 'single' ? 0 : 1)));
+  document.getElementById('outbound-single-card').style.display = 'none';
+  document.getElementById('outbound-batch-dest').style.display = 'none';
+  selectedOutboundDest = null; selectedBatchDest = null;
+  if (mode === 'batch') { renderOutboundBatch(); document.getElementById('outbound-batch-card').style.display = 'block'; }
+  else document.getElementById('outbound-batch-card').style.display = 'none';
+  document.getElementById('outbound-scanner').focus();
+}
+
+// ─── 入库扫描 ──────────────────────────────────────────
+
+document.getElementById('inbound-scanner').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); const v = this.value.trim(); if (v) { this.value = ''; inboundScan(v); } }
+});
+
+function inboundScan(barrelNo) {
+  beep(); flashZone('inbound-scan-zone'); showLastScan('inbound-last-scan', barrelNo);
+  document.getElementById('inbound-scan-status').innerHTML = '<span class="beep-dot"></span>已扫描';
+
+  if (inboundMode === 'single') {
+    inboundSingleBarrel = barrelNo;
+    showSingleInboundLoc(barrelNo);
+  } else {
+    if (inboundBatch.includes(barrelNo)) return;
+    inboundBatch.push(barrelNo);
+    renderInboundBatch();
+  }
+}
+
+async function showSingleInboundLoc(barrelNo) {
+  await refreshOccupied();
+  document.getElementById('inbound-single-barrel').textContent = '🛢 ' + barrelNo;
+  document.getElementById('inbound-single-loc').style.display = 'block';
+  buildInboundGrid('loc-inbound-single');
+  selectedInboundLoc = null;
+  document.getElementById('btn-inbound-single').disabled = true;
+  document.getElementById('inbound-single-loc').scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelSingleInbound() {
+  inboundSingleBarrel = null; selectedInboundLoc = null;
+  document.getElementById('inbound-single-loc').style.display = 'none';
+  document.getElementById('inbound-scanner').focus();
+}
+
+async function confirmSingleInbound() {
+  if (!inboundSingleBarrel || !selectedInboundLoc) return;
+  const resp = await fetch(API + '/api/inbound', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ barrel_no: inboundSingleBarrel, location: selectedInboundLoc })
+  });
+  const data = await resp.json();
+  document.getElementById('inbound-msg').innerHTML = `<div class="result ${data.success ? 'success' : 'error'}">${data.msg}</div>`;
+  inboundSingleBarrel = null; selectedInboundLoc = null;
+  document.getElementById('inbound-single-loc').style.display = 'none';
+  refreshOccupied();
+  setTimeout(() => { document.getElementById('inbound-msg').innerHTML = ''; }, 2000);
+  document.getElementById('inbound-scanner').focus();
+}
+
+// ─── 批量入库 ──────────────────────────────────────────
+
+function renderInboundBatch() {
+  document.getElementById('inbound-batch-count').textContent = '已扫 ' + inboundBatch.length + ' 桶';
+  document.getElementById('inbound-batch-list').innerHTML = inboundBatch.map((b, i) =>
+    `<div class="batch-item"><span>🛢 ${b}</span><button class="del" onclick="removeInboundBatch(${i})">✕</button></div>`).join('');
+}
+
+function removeInboundBatch(i) { inboundBatch.splice(i, 1); renderInboundBatch(); }
+function clearInboundBatch() { inboundBatch = []; renderInboundBatch(); document.getElementById('inbound-batch-confirm').style.display = 'none'; }
+
+async function showBatchLocPicker() {
+  if (inboundBatch.length === 0) return;
+  await refreshOccupied();
+  document.getElementById('inbound-batch-confirm').style.display = 'block';
+  buildInboundGrid('loc-inbound-batch');
+  selectedBatchLoc = null;
+  document.getElementById('btn-inbound-batch').disabled = true;
+  document.getElementById('inbound-batch-confirm').scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelBatchInbound() {
+  selectedBatchLoc = null;
+  document.getElementById('inbound-batch-confirm').style.display = 'none';
+  document.getElementById('inbound-scanner').focus();
+}
+
+async function confirmBatchInbound() {
+  if (inboundBatch.length === 0 || !selectedBatchLoc) return;
+  const resp = await fetch(API + '/api/inbound/batch', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ barrel_nos: inboundBatch, location: selectedBatchLoc })
+  });
+  const data = await resp.json();
+  let msg = `✅ 入库 ${data.success_count} 桶 → ${data.location}`;
+  if (data.skip_list.length > 0) msg += `<br>⚠️ 跳过: ${data.skip_list.join(', ')}`;
+  document.getElementById('inbound-msg').innerHTML = `<div class="result success">${msg}</div>`;
+  inboundBatch = []; selectedBatchLoc = null;
+  renderInboundBatch();
+  document.getElementById('inbound-batch-confirm').style.display = 'none';
+  refreshOccupied();
+  setTimeout(() => { document.getElementById('inbound-msg').innerHTML = ''; }, 3000);
+  document.getElementById('inbound-scanner').focus();
+}
+
+// 批量入库的"选择储位"按钮
+(function() {
+  const card = document.getElementById('inbound-batch-card');
+  if (card) {
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-primary'; btn.textContent = '📍 选择储位并入库'; btn.style.marginTop = '6px';
+    btn.onclick = showBatchLocPicker; card.appendChild(btn);
+  }
+})();
+
+// ─── 出库扫描 ──────────────────────────────────────────
+
+document.getElementById('outbound-scanner').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); const v = this.value.trim(); if (v) { this.value = ''; outboundScan(v); } }
+});
+
+async function outboundScan(barrelNo) {
+  beep(); flashZone('outbound-scan-zone'); showLastScan('outbound-last-scan', barrelNo);
+  document.getElementById('outbound-scan-status').innerHTML = '<span class="beep-dot"></span>已扫描';
+
+  if (outboundMode === 'single') {
+    // 查储位
+    const qResp = await fetch(API + '/api/inventory/' + encodeURIComponent(barrelNo));
+    if (!qResp.ok) {
+      document.getElementById('outbound-msg').innerHTML = `<div class="result error">❌ 桶号 ${barrelNo} 不在库中</div>`;
+      setTimeout(() => { document.getElementById('outbound-msg').innerHTML = ''; }, 2000);
+      document.getElementById('outbound-scanner').focus();
+      return;
+    }
+    const qData = await qResp.json();
+    outboundSingleBarrel = barrelNo;
+    outboundSingleFrom = qData.location;
+    document.getElementById('outbound-single-barrel').textContent = '🛢 ' + barrelNo;
+    document.getElementById('outbound-single-from').textContent = '📍 ' + qData.location;
+    document.getElementById('outbound-single-card').style.display = 'block';
+    buildDestGrid('dest-rg-single', 'dest-fj-single');
+    selectedOutboundDest = null;
+    document.getElementById('outbound-single-card').scrollIntoView({ behavior: 'smooth' });
+  } else {
+    if (outboundBatch.includes(barrelNo)) return;
+    outboundBatch.push(barrelNo);
+    renderOutboundBatch();
+  }
+}
+
+function cancelOutboundSingle() {
+  outboundSingleBarrel = null; outboundSingleFrom = null; selectedOutboundDest = null;
+  document.getElementById('outbound-single-card').style.display = 'none';
+  document.getElementById('outbound-scanner').focus();
+}
+
+async function executeSingleOutbound() {
+  if (!outboundSingleBarrel || !selectedOutboundDest) return;
+  const resp = await fetch(API + '/api/outbound', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ barrel_no: outboundSingleBarrel, destination: selectedOutboundDest })
+  });
+  const data = await resp.json();
+  document.getElementById('outbound-msg').innerHTML = `<div class="result ${data.success ? 'success' : 'error'}">${data.msg}</div>`;
+  outboundSingleBarrel = null; outboundSingleFrom = null; selectedOutboundDest = null;
+  document.getElementById('outbound-single-card').style.display = 'none';
+  refreshOccupied();
+  setTimeout(() => { document.getElementById('outbound-msg').innerHTML = ''; }, 2000);
+  document.getElementById('outbound-scanner').focus();
+}
+
+// ─── 批量出库 ──────────────────────────────────────────
+
+function renderOutboundBatch() {
+  document.getElementById('outbound-batch-count').textContent = '已扫 ' + outboundBatch.length + ' 桶';
+  document.getElementById('outbound-batch-list').innerHTML = outboundBatch.map((b, i) =>
+    `<div class="batch-item"><span>🛢 ${b}</span><button class="del" onclick="removeOutboundBatch(${i})">✕</button></div>`).join('');
+}
+
+function removeOutboundBatch(i) { outboundBatch.splice(i, 1); renderOutboundBatch(); }
+function clearOutboundBatch() { outboundBatch = []; renderOutboundBatch(); document.getElementById('outbound-batch-dest').style.display = 'none'; }
+
+function showBatchDestPicker() {
+  if (outboundBatch.length === 0) return;
+  document.getElementById('outbound-batch-dest').style.display = 'block';
+  buildDestGrid('dest-rg-batch', 'dest-fj-batch');
+  selectedBatchDest = null;
+  document.getElementById('outbound-batch-dest').scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelBatchOutbound() {
+  selectedBatchDest = null;
+  document.getElementById('outbound-batch-dest').style.display = 'none';
+  document.getElementById('outbound-scanner').focus();
+}
+
+async function confirmBatchOutbound() {
+  if (outboundBatch.length === 0 || !selectedBatchDest) return;
+  const resp = await fetch(API + '/api/outbound/batch', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ barrel_nos: outboundBatch, destination: selectedBatchDest })
+  });
+  const data = await resp.json();
+  let details = data.success_list.map(i => `${i.barrel_no}←${i.from_location}`).join(' | ');
+  let msg = `✅ 出库 ${data.success_count} 桶 → ${selectedBatchDest}<br>${details}`;
+  if (data.not_found_list.length > 0) msg += `<br>⚠️ 不在库: ${data.not_found_list.join(', ')}`;
+  document.getElementById('outbound-msg').innerHTML = `<div class="result success">${msg}</div>`;
+  outboundBatch = []; selectedBatchDest = null;
+  renderOutboundBatch();
+  document.getElementById('outbound-batch-dest').style.display = 'none';
+  refreshOccupied();
+  setTimeout(() => { document.getElementById('outbound-msg').innerHTML = ''; }, 5000);
+  document.getElementById('outbound-scanner').focus();
+}
+
+// 批量出库的"选择目的地"按钮
+(function() {
+  const card = document.getElementById('outbound-batch-card');
+  if (card) {
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-primary'; btn.textContent = '🚚 选择目的地并出库'; btn.style.marginTop = '6px';
+    btn.onclick = showBatchDestPicker; card.appendChild(btn);
+  }
+})();
+
+// ─── 删除桶号 ──────────────────────────────────────────
+
+function setDeleteMode(mode) {
+  deleteMode = mode;
+  document.querySelectorAll('#panel-query .mode-btn').forEach((b,i) =>
+    b.classList.toggle('active', i === (mode === 'single' ? 0 : 1)));
+  document.getElementById('delete-single-confirm').style.display = 'none';
+  document.getElementById('delete-batch-section').style.display = mode === 'batch' ? 'block' : 'none';
+  if (mode === 'batch') renderDeleteBatch();
+  document.getElementById('delete-input').focus();
+}
+
+document.getElementById('delete-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); const v = this.value.trim(); if (v) { this.value = ''; deleteLookup(v); } }
+});
+
+async function deleteLookup(barrelNo) {
+  beep();
+  if (deleteMode === 'single') {
+    // 查询桶号信息
+    const resp = await fetch(API + '/api/inventory/' + encodeURIComponent(barrelNo));
+    if (!resp.ok) {
+      document.getElementById('delete-msg').innerHTML = `<div class="result error">桶号 ${barrelNo} 不存在</div>`;
+      setTimeout(() => { document.getElementById('delete-msg').innerHTML = ''; }, 2000);
+      document.getElementById('delete-input').focus();
+      return;
+    }
+    const data = await resp.json();
+    document.getElementById('delete-single-info').innerHTML = `
+      🛢 <b>${data.barrel_no}</b> &nbsp; 📍 ${data.location} &nbsp;
+      <span class="badge badge-${data.status==='in'?'in':'out'}">${data.status==='in'?'在库':'已出库'}</span>
+      <br><span style="font-size:11px;color:#999">${data.update_time}</span>`;
+    document.getElementById('delete-single-confirm').style.display = 'block';
+    window._deleteBarrel = barrelNo;
+    document.getElementById('delete-single-confirm').scrollIntoView({ behavior: 'smooth' });
+  } else {
+    if (deleteBatch.includes(barrelNo)) return;
+    deleteBatch.push(barrelNo);
+    renderDeleteBatch();
+  }
+}
+
+async function confirmDeleteSingle() {
+  const barrelNo = window._deleteBarrel;
+  if (!barrelNo) return;
+  if (!confirm(`⚠️ 确定要删除桶号 ${barrelNo} 吗？此操作不可恢复！`)) return;
+  const resp = await fetch(API + '/api/barrel/' + encodeURIComponent(barrelNo), { method: 'DELETE' });
+  const data = await resp.json();
+  document.getElementById('delete-msg').innerHTML = `<div class="result ${data.success ? 'success' : 'error'}">${data.msg}</div>`;
+  document.getElementById('delete-single-confirm').style.display = 'none';
+  window._deleteBarrel = null;
+  refreshOccupied();
+  setTimeout(() => { document.getElementById('delete-msg').innerHTML = ''; }, 2000);
+  document.getElementById('delete-input').focus();
+}
+
+function cancelDelete() {
+  document.getElementById('delete-single-confirm').style.display = 'none';
+  window._deleteBarrel = null;
+  document.getElementById('delete-input').focus();
+}
+
+function renderDeleteBatch() {
+  document.getElementById('delete-batch-count').textContent = '已选 ' + deleteBatch.length + ' 桶';
+  document.getElementById('delete-batch-list').innerHTML = deleteBatch.map((b, i) =>
+    `<div class="batch-item"><span>🛢 ${b}</span><button class="del" onclick="removeDeleteBatch(${i})">✕</button></div>`).join('');
+}
+
+function removeDeleteBatch(i) { deleteBatch.splice(i, 1); renderDeleteBatch(); }
+function clearDeleteBatch() { deleteBatch = []; renderDeleteBatch(); }
+
+async function confirmDeleteBatch() {
+  if (deleteBatch.length === 0) return;
+  if (!confirm(`⚠️ 确定要删除 ${deleteBatch.length} 个桶号吗？此操作不可恢复！`)) return;
+  const resp = await fetch(API + '/api/barrel/delete/batch', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ barrel_nos: deleteBatch })
+  });
+  const data = await resp.json();
+  let msg = `✅ ${data.msg}`;
+  if (data.not_found.length > 0) msg += `<br>⚠️ 不存在: ${data.not_found.join(', ')}`;
+  document.getElementById('delete-msg').innerHTML = `<div class="result success">${msg}</div>`;
+  deleteBatch = [];
+  renderDeleteBatch();
+  refreshOccupied();
+  setTimeout(() => { document.getElementById('delete-msg').innerHTML = ''; }, 3000);
+  document.getElementById('delete-input').focus();
+}
+
+// ─── 标签切换 ──────────────────────────────────────────
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['inbound','outbound','query','logs'][i] === tab);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+
+  if (tab === 'inbound') { refreshOccupied(); setTimeout(() => document.getElementById('inbound-scanner').focus(), 100); }
+  if (tab === 'outbound') setTimeout(() => document.getElementById('outbound-scanner').focus(), 100);
+  if (tab === 'query') setTimeout(() => document.getElementById('query-input').focus(), 100);
+  if (tab === 'logs') loadLogs();
+}
+
+// ─── 查询 ──────────────────────────────────────────────
+
+document.getElementById('query-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); searchInventory(); }
+});
+
+async function searchInventory() {
+  const val = document.getElementById('query-input').value.trim();
+  if (!val) return;
+  document.getElementById('query-input').value = '';
+  const r1 = await fetch(API + '/api/inventory/' + encodeURIComponent(val));
+  if (r1.ok) {
+    const d = await r1.json();
+    document.getElementById('query-result').innerHTML = `
+      <div class="result info">
+        <div class="info-row"><span class="info-label">桶号</span><span class="info-value">🛢 ${d.barrel_no}</span></div>
+        <div class="info-row"><span class="info-label">储位</span><span class="info-value">📍 ${d.location}</span></div>
+        <div class="info-row"><span class="info-label">状态</span><span class="info-value"><span class="badge badge-${d.status==='in'?'in':'out'}">${d.status==='in'?'在库':'已出库'}</span></span></div>
+        <div class="info-row"><span class="info-label">更新时间</span><span class="info-value">${d.update_time}</span></div>
+      </div>`;
+    document.getElementById('query-input').focus();
+    return;
+  }
+  const r2 = await fetch(API + '/api/inventory/location/' + encodeURIComponent(val));
+  const data2 = await r2.json();
+  if (data2.length > 0) {
+    let html = `<div class="result info"><strong>📍 ${val}（${data2.length}桶）</strong>`;
+    data2.forEach(d => { html += `<div class="info-row"><span>🛢 ${d.barrel_no}</span><span style="color:#999;font-size:11px">${d.update_time}</span></div>`; });
+    html += '</div>';
+    document.getElementById('query-result').innerHTML = html;
+  } else {
+    document.getElementById('query-result').innerHTML = `<div class="result error">未找到: ${val}</div>`;
+  }
+  document.getElementById('query-input').focus();
+}
+
+async function loadAllInventory() {
+  const resp = await fetch(API + '/api/inventory');
+  const data = await resp.json();
+  if (data.length === 0) {
+    document.getElementById('query-result').innerHTML = '<div class="result info">📭 暂无在库记录</div>';
+    return;
+  }
+  let html = `<table><thead><tr><th>桶号</th><th>储位</th><th>时间</th></tr></thead><tbody>`;
+  data.forEach(d => {
+    html += `<tr><td>🛢 ${d.barrel_no}</td><td>📍 ${d.location}</td><td style="color:#999;font-size:11px">${d.update_time}</td></tr>`;
+  });
+  html += `</tbody></table><div style="margin-top:6px;color:#999;font-size:12px;text-align:center">共 ${data.length} 桶在库</div>`;
+  document.getElementById('query-result').innerHTML = html;
+}
+
+// ─── 操作记录 ──────────────────────────────────────────
+
+async function loadLogs() {
+  const resp = await fetch(API + '/api/logs?limit=50');
+  const data = await resp.json();
+  if (data.length === 0) {
+    document.getElementById('logs-content').innerHTML = '<div class="result info">暂无操作记录</div>';
+    return;
+  }
+  let html = '<table><thead><tr><th>时间</th><th>桶号</th><th>操作</th><th>储位</th><th>目的地</th></tr></thead><tbody>';
+  data.forEach(d => {
+    const actionIcon = d.action === '入库' ? '📥' : d.action === '出库' ? '📤' : '🗑';
+    const destTag = d.destination
+      ? (d.destination.startsWith('RG') ? `<span class="zone-tag rg">👤${d.destination}</span>` : `<span class="zone-tag fj">🤖${d.destination}</span>`)
+      : '';
+    html += `<tr>
+      <td style="color:#999;font-size:11px;white-space:nowrap">${d.created_at}</td>
+      <td>${d.barrel_no}</td>
+      <td>${d.action==='入库'?'📥':'📤'} ${d.action}</td>
+      <td>${d.location}</td>
+      <td>${destTag}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('logs-content').innerHTML = html;
+}
+
+// ─── 防止输入框失焦 ─────────────────────────────────────
+
+document.addEventListener('click', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'A') return;
+  const activePanel = document.querySelector('.panel.active');
+  if (!activePanel) return;
+  if (activePanel.id === 'panel-inbound') setTimeout(() => document.getElementById('inbound-scanner').focus(), 50);
+  else if (activePanel.id === 'panel-outbound') setTimeout(() => document.getElementById('outbound-scanner').focus(), 50);
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    const ap = document.querySelector('.panel.active');
+    if (ap && ap.id === 'panel-inbound') document.getElementById('inbound-scanner').focus();
+    if (ap && ap.id === 'panel-outbound') document.getElementById('outbound-scanner').focus();
+  }
+});
+
+// ─── 启动 ──────────────────────────────────────────────
+refreshOccupied();
+document.getElementById('inbound-scanner').focus();
+</script>
+</body>
+</html>
