@@ -332,7 +332,7 @@ async function confirmSave() {
   try {
     const resp = await fetch(API + '/api/inbound/batch', {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ barrels: barrels, location: selectedLoc })
+      body: JSON.stringify({ barrel_nos: barrels, location: selectedLoc })
     });
     await resp.json();
     beep();
