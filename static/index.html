@@ -51,6 +51,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .query-bar .btn-sm{padding:7px 14px;font-size:13px;font-weight:600;border:none;border-radius:7px;cursor:pointer}
 .query-bar .btn-outline{background:#fff;color:#1677ff;border:1.5px solid #1677ff}
 .query-bar .btn-outline:active{background:#e6f4ff}
+.query-bar .btn-lookup{background:#fa8c16;color:#fff;border:none;font-size:14px;padding:8px 16px;box-shadow:0 2px 4px rgba(250,140,22,.3)}
+.query-bar .btn-lookup:active{background:#d46b08}
 .query-bar .btn-ghost{background:#f5f5f5;color:#595959}
 
 /* Table (hidden by default) */
@@ -128,7 +130,7 @@ tr.row-a2n{background:#fffbe6}
   <!-- Query -->
   <div class="query-wrap">
     <div class="query-bar">
-      <button class="btn-sm btn-outline" id="btn-detail" onclick="toggleDetail()" data-i18n="all_inventory">📋 桶明细</button>
+      <button class="btn-sm btn-lookup" id="btn-detail" onclick="toggleDetail()" data-i18n="all_inventory">🔎 查桶号</button>
       <button class="btn-sm btn-ghost" onclick="exportExcel()" data-i18n="export_excel">📥 导出</button>
     </div>
     <div class="table-section" id="table-section">
@@ -182,16 +184,16 @@ const I18N = {
     clear: '✕ 清除',
     confirm_save: '✅ 确认保存',
     query_title: '🔍 库存查询', query_placeholder: '输入桶号或储位筛选', query_btn: '搜索',
-    all_inventory: '📋 桶明细', export_excel: '📥 导出',
+    all_inventory: '🔎 查桶号', export_excel: '📥 导出',
     th_barrel: '桶号', th_location: '当前位置', th_time: '更新时间',
     delete_title: '🗑 删除桶号', delete_placeholder: '扫码或输入桶号，回车确认删除',
     delete_confirm_prefix: '确认删除', delete_confirm_suffix: '？此操作不可撤销。', confirm_delete: '⚠️ 确认删除',
     new_barrel: '请选择储位',
-    a2_storage: '📦 储区 A2 (01~96)', a2_97_label: '🪣 人工分检', a2_99_label: '🤖 自动分检', a2_98_label: '🔩 分检螺帽',
+    a2_storage: '📦 储区 A2 (01~95)', a2_96_label: '🧴 除油旁边', a2_97_label: '🪣 人工分检', a2_99_label: '🤖 自动分检', a2_98_label: '🔩 分检螺帽',
     saved: '✅ # 个桶号已保存到 #',
     select_location_first: '请先选择储位',
     no_barrels: '请先扫码添加桶号',
-    detail_hide: '📋 收起明细',
+    detail_hide: '🔎 收起查询',
     deleted: '🗑 桶号 # 已删除',
     not_found: '未找到桶号 #', no_results: '暂无库存记录',
     export_success: '📥 Excel 已导出', query_count: '共 # 条',
@@ -205,16 +207,16 @@ const I18N = {
     clear: '✕ Xóa hết',
     confirm_save: '✅ Xác nhận lưu',
     query_title: '🔍 Tra cứu', query_placeholder: 'Nhập mã thùng hoặc vị trí', query_btn: 'Tìm',
-    all_inventory: '📋 Chi tiết thùng', export_excel: '📥 Xuất',
+    all_inventory: '🔎 Tra cứu', export_excel: '📥 Xuất',
     th_barrel: 'Mã thùng', th_location: 'Vị trí', th_time: 'Cập nhật',
     delete_title: '🗑 Xóa thùng', delete_placeholder: 'Quét hoặc nhập mã thùng, Enter để xóa',
     delete_confirm_prefix: 'Xác nhận xóa', delete_confirm_suffix: '? Không thể hoàn tác.', confirm_delete: '⚠️ Xác nhận xóa',
     new_barrel: 'Chọn vị trí',
-    a2_storage: '📦 Kho A2 (01~96)', a2_97_label: '🪣 Phân loại thủ công', a2_99_label: '🤖 Phân loại tự động', a2_98_label: '🔩 Phân loại đai ốc',
+    a2_storage: '📦 Kho A2 (01~95)', a2_96_label: '🧴 Cạnh khu tẩy dầu', a2_97_label: '🪣 Phân loại thủ công', a2_99_label: '🤖 Phân loại tự động', a2_98_label: '🔩 Phân loại đai ốc',
     saved: '✅ # mã đã lưu vào #',
     select_location_first: 'Hãy chọn vị trí trước',
     no_barrels: 'Hãy quét thêm mã thùng trước',
-    detail_hide: '📋 Thu gọn',
+    detail_hide: '🔎 Thu gọn',
     deleted: '🗑 Đã xóa thùng #',
     not_found: 'Không tìm thấy thùng #', no_results: 'Chưa có dữ liệu',
     export_success: '📥 Xuất Excel thành công', query_count: 'Tổng # bản ghi',
@@ -306,11 +308,12 @@ document.getElementById('btn-clear').addEventListener('click', clearBarrels);
 function buildLocGrid() {
   const el = document.getElementById('loc-grid');
   let h = '<div class="loc-label">' + t('a2_storage') + '</div>';
-  for (let i = 1; i <= 96; i++) {
+  for (let i = 1; i <= 95; i++) {
     const loc = 'A2-' + String(i).padStart(2, '0');
     h += `<button class="loc-btn" data-loc="${loc}" onclick="pickLoc('${loc}', this)">${loc}</button>`;
   }
-  h += '<div class="loc-label">🪣 A2-97 | 🤖 A2-99 | 🔩 A2-98</div>';
+  h += '<div class="loc-label">🧴 A2-96 | 🪣 A2-97 | 🤖 A2-99 | 🔩 A2-98</div>';
+  h += `<button class="loc-btn special" data-loc="除油旁边" onclick="pickLoc('除油旁边', this)">${t('a2_96_label')}</button>`;
   h += `<button class="loc-btn special" data-loc="人工分检区" onclick="pickLoc('人工分检区', this)">${t('a2_97_label')}</button>`;
   h += `<button class="loc-btn special" data-loc="自动分检区" onclick="pickLoc('自动分检区', this)">${t('a2_99_label')}</button>`;
   h += `<button class="loc-btn special" data-loc="自动分检螺帽区" onclick="pickLoc('自动分检螺帽区', this)">${t('a2_98_label')}</button>`;
@@ -385,7 +388,8 @@ function renderResults(items) {
   } else {
     tbody.innerHTML = items.map(d => {
       let rc = '', ld = d.location||'';
-      if (ld === '人工分检区') { rc = 'row-a2n'; ld = '<span class="zone-tag special">🪣 '+ld+'</span>'; }
+      if (ld === '除油旁边') { rc = 'row-a2n'; ld = '<span class="zone-tag special">🧴 '+ld+'</span>'; }
+      else if (ld === '人工分检区') { rc = 'row-a2n'; ld = '<span class="zone-tag special">🪣 '+ld+'</span>'; }
       else if (ld === '自动分检区') { rc = 'row-a2d'; ld = '<span class="zone-tag special">🤖 '+ld+'</span>'; }
       else if (ld === '自动分检螺帽区') { rc = 'row-a2n'; ld = '<span class="zone-tag special">🔩 '+ld+'</span>'; }
       return `<tr class="${rc}"><td style="font-weight:600">${d.barrel_no}</td><td>${ld}</td><td>${d.update_time||d.updated_at||d.time||''}</td></tr>`;
