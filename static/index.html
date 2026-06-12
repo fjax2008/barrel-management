@@ -248,13 +248,13 @@ function setLang(l) {
   if (enterMode === 'batch') bc.innerHTML = '✅ <span>' + t('confirm_batch_save') + '</span>';
   else bc.innerHTML = '✅ <span>' + t('confirm_save') + '</span>';
 }
-setLang(lang);
-
 // ─── Globals ────────────────────────────────────────────────
 const API = '';
 let enterMode = 'batch';  // 'single' | 'batch'
 let currentBarrelNo = null, currentBarrelLoc = null, selectedLoc = null;
 let batchBarrels = [];
+
+setLang(lang);
 
 function showToast(msg, type) {
   const el = document.createElement('div');
