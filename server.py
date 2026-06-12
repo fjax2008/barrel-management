@@ -253,6 +253,30 @@ def delete_barrel_batch(req: DeleteRequest):
             "msg": f"已删除 {len(deleted)} 桶" + (f"，{len(not_found)} 桶不存在" if not_found else "")}
 
 
+# ─── 数据恢复 ─────────────────────────────────────────────
+
+@app.post("/api/import")
+def import_data(data: list[dict]):
+    """批量导入备份数据"""
+    conn = get_db()
+    c = conn.cursor()
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    imported = 0
+    for item in data:
+        bn = item.get("barrel_no", "").strip()
+        loc = item.get("location", "").strip()
+        st = item.get("status", "in")
+        if not bn or not loc: continue
+        c.execute("INSERT OR REPLACE INTO barrel_inventory (barrel_no, location, status, update_time) VALUES (?, ?, ?, ?)",
+                  (bn, loc, st, now))
+        c.execute("INSERT INTO barrel_log (barrel_no, action, location, destination, created_at) VALUES (?, '入库', ?, '', ?)",
+                  (bn, loc, now))
+        imported += 1
+    conn.commit()
+    conn.close()
+    return {"success": True, "msg": f"已恢复 {imported} 条记录"}
+
+
 # ─── 查询 ─────────────────────────────────────────────────
 
 @app.get("/api/inventory")
@@ -265,16 +289,18 @@ def get_inventory():
     return rows
 
 
-@app.get("/api/inventory/{barrel_no}")
-def query_barrel(barrel_no: str):
+@app.get("/api/inventory/{keyword}")
+def query_barrel(keyword: str):
+    """模糊查询: 按桶号或储位搜索"""
     conn = get_db()
     c = conn.cursor()
-    c.execute("SELECT * FROM barrel_inventory WHERE barrel_no = ?", (barrel_no,))
-    row = c.fetchone()
+    c.execute("SELECT * FROM barrel_inventory WHERE barrel_no LIKE ? ORDER BY status='in' DESC, update_time DESC", (f"%{keyword}%",))
+    rows = [dict(r) for r in c.fetchall()]
+    if not rows:
+        c.execute("SELECT * FROM barrel_inventory WHERE location LIKE ? AND status = 'in' ORDER BY location", (f"%{keyword}%",))
+        rows = [dict(r) for r in c.fetchall()]
     conn.close()
-    if row:
-        return dict(row)
-    raise HTTPException(404, "未找到该桶号")
+    return rows
 
 
 @app.get("/api/inventory/location/{location}")

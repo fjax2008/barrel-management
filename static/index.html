@@ -715,27 +715,31 @@ async function searchInventory() {
   document.getElementById('query-input').value = '';
   const r1 = await fetch(API + '/api/inventory/' + encodeURIComponent(val));
   if (r1.ok) {
-    const d = await r1.json();
-    document.getElementById('query-result').innerHTML = `
-      <div class="result info">
-        <div class="info-row"><span class="info-label">桶号</span><span class="info-value">🛢 ${d.barrel_no}</span></div>
-        <div class="info-row"><span class="info-label">储位</span><span class="info-value">📍 ${d.location}</span></div>
-        <div class="info-row"><span class="info-label">状态</span><span class="info-value"><span class="badge badge-${d.status==='in'?'in':'out'}">${d.status==='in'?'在库':'已出库'}</span></span></div>
-        <div class="info-row"><span class="info-label">更新时间</span><span class="info-value">${d.update_time}</span></div>
-      </div>`;
+    const data = await r1.json();
+    if (data.length === 0) {
+      document.getElementById('query-result').innerHTML = `<div class="result error">未找到: ${val}</div>`;
+    } else if (data.length === 1) {
+      const d = data[0];
+      document.getElementById('query-result').innerHTML = `
+        <div class="result info">
+          <div class="info-row"><span class="info-label">桶号</span><span class="info-value">🛢 ${d.barrel_no}</span></div>
+          <div class="info-row"><span class="info-label">储位</span><span class="info-value">📍 ${d.location}</span></div>
+          <div class="info-row"><span class="info-label">状态</span><span class="info-value"><span class="badge badge-${d.status==='in'?'in':'out'}">${d.status==='in'?'在库':'已出库'}</span></span></div>
+          <div class="info-row"><span class="info-label">更新时间</span><span class="info-value">${d.update_time}</span></div>
+        </div>`;
+    } else {
+      let html = `<div class="result info"><strong>🔍 "${val}" 匹配 ${data.length} 条</strong>`;
+      data.forEach(d => {
+        const badge = d.status==='in' ? '<span class="badge badge-in">在库</span>' : '<span class="badge badge-out">已出库</span>';
+        html += `<div class="info-row"><span>🛢 ${d.barrel_no}</span><span>📍 ${d.location}</span>${badge}</div>`;
+      });
+      html += '</div>';
+      document.getElementById('query-result').innerHTML = html;
+    }
     document.getElementById('query-input').focus();
     return;
   }
-  const r2 = await fetch(API + '/api/inventory/location/' + encodeURIComponent(val));
-  const data2 = await r2.json();
-  if (data2.length > 0) {
-    let html = `<div class="result info"><strong>📍 ${val}（${data2.length}桶）</strong>`;
-    data2.forEach(d => { html += `<div class="info-row"><span>🛢 ${d.barrel_no}</span><span style="color:#999;font-size:11px">${d.update_time}</span></div>`; });
-    html += '</div>';
-    document.getElementById('query-result').innerHTML = html;
-  } else {
-    document.getElementById('query-result').innerHTML = `<div class="result error">未找到: ${val}</div>`;
-  }
+  document.getElementById('query-result').innerHTML = `<div class="result error">未找到: ${val}</div>`;
   document.getElementById('query-input').focus();
 }
 
