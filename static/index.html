@@ -83,6 +83,7 @@ th{background:#fafafa;font-weight:600;color:#888;font-size:11px}
 .zone-tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;margin-left:4px}
 .zone-tag.rg{background:#fff7e6;color:#d46b08}
 .zone-tag.fj{background:#e6f4ff;color:#0958d9}
+.zone-tag.a2d{background:#f0e6ff;color:#722ed1}
 </style>
 </head>
 <body>
@@ -174,6 +175,10 @@ th{background:#fafafa;font-weight:600;color:#888;font-size:11px}
     <div class="loc-grid" id="dest-rg-single"></div>
     <div class="loc-label" data-i18n="zone_fj">🤖 自动分检区</div>
     <div class="loc-grid" id="dest-fj-single"></div>
+    <div class="loc-label" data-i18n="zone_a2_99">🤖 自动分检区 (A2-99)</div>
+    <div id="dest-a2-99-single"></div>
+    <div class="loc-label" data-i18n="zone_a2_98">🔩 自动分检螺帽区 (A2-98)</div>
+    <div id="dest-a2-98-single"></div>
     <button class="btn btn-default" data-i18n="cancel" onclick="cancelOutboundSingle()">取消</button>
   </div>
 
@@ -194,6 +199,10 @@ th{background:#fafafa;font-weight:600;color:#888;font-size:11px}
       <div class="loc-grid" id="dest-rg-batch"></div>
       <div class="loc-label" data-i18n="zone_fj">🤖 自动分检区</div>
       <div class="loc-grid" id="dest-fj-batch"></div>
+      <div class="loc-label" data-i18n="zone_a2_99">🤖 自动分检区 (A2-99)</div>
+      <div id="dest-a2-99-batch"></div>
+      <div class="loc-label" data-i18n="zone_a2_98">🔩 自动分检螺帽区 (A2-98)</div>
+      <div id="dest-a2-98-batch"></div>
       <button class="btn btn-danger" onclick="confirmBatchOutbound()">📤 <span data-i18n="batch_outbound_btn">全部出库</span></button>
       <button class="btn btn-default" data-i18n="cancel" onclick="cancelBatchOutbound()">取消</button>
     </div>
@@ -274,7 +283,9 @@ const I18N = {
     scanned_batch: '已扫 # 桶',
     clear: '清空',
     pick_location: '选择储位',
-    loc_a2_label: '📦 入库储区 A2 (01~99)',
+    loc_a2_label: '📦 入库储区 A2 (01~97)',
+    zone_a2_99: '🤖 自动分检区 (A2-99)',
+    zone_a2_98: '🔩 自动分检螺帽区 (A2-98)',
     confirm_inbound: '确认入库',
     cancel: '取消',
     batch_inbound_title: '📍 全部入库到哪个储位？',
@@ -354,7 +365,9 @@ const I18N = {
     scanned_batch: 'Đã quét # thùng',
     clear: 'Xóa DS',
     pick_location: 'Chọn vị trí',
-    loc_a2_label: '📦 Vị trí nhập A2 (01~99)',
+    loc_a2_label: '📦 Vị trí nhập A2 (01~97)',
+    zone_a2_99: '🤖 Khu phân loại tự động (A2-99)',
+    zone_a2_98: '🔩 Khu phân loại đai ốc (A2-98)',
     confirm_inbound: 'Xác nhận nhập kho',
     cancel: 'Hủy',
     batch_inbound_title: '📍 Nhập tất cả vào vị trí nào?',
@@ -492,7 +505,7 @@ function buildInboundGrid(containerId) {
   const el = document.getElementById(containerId);
   if (!el) return;
   let html = '';
-  for (let i = 1; i <= 99; i++) {
+  for (let i = 1; i <= 97; i++) {
     const loc = 'A2-' + String(i).padStart(2, '0');
     html += `<button class="loc-btn" data-loc="${loc}" onclick="pickInboundLoc('${loc}', this, '${containerId}')">${loc}</button>`;
   }
@@ -525,10 +538,17 @@ function buildDestGrid(rgContainerId, fjContainerId) {
   }
   rgEl.innerHTML = rgHtml;
   fjEl.innerHTML = fjHtml;
+  // Also populate A2-99 and A2-98 destination buttons
+  const suffix = rgContainerId.includes('single') ? 'single' : 'batch';
+  const e99 = document.getElementById('dest-a2-99-' + suffix);
+  const e98 = document.getElementById('dest-a2-98-' + suffix);
+  if (e99) e99.innerHTML = `<button class="loc-btn" data-dest="A2-99" onclick="pickDest('A2-99', this, '${rgContainerId}', '${fjContainerId}')">A2-99</button>`;
+  if (e98) e98.innerHTML = `<button class="loc-btn" data-dest="A2-98" onclick="pickDest('A2-98', this, '${rgContainerId}', '${fjContainerId}')">A2-98</button>`;
 }
 
 function pickDest(dest, btn, rgId, fjId) {
-  document.querySelectorAll('#' + rgId + ' .loc-btn, #' + fjId + ' .loc-btn').forEach(b => b.classList.remove('selected'));
+  const suffix = rgId.includes('single') ? 'single' : 'batch';
+  document.querySelectorAll('#' + rgId + ' .loc-btn, #' + fjId + ' .loc-btn, #dest-a2-99-' + suffix + ' .loc-btn, #dest-a2-98-' + suffix + ' .loc-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
 
   if (rgId === 'dest-rg-single') {
@@ -1003,7 +1023,10 @@ async function loadLogs() {
     const actionMap = { '入库': '📥 ' + t('action_inbound'), '出库': '📤 ' + t('action_outbound'), '删除': '🗑 ' + t('action_delete') };
     const actionText = actionMap[d.action] || d.action;
     const destTag = d.destination
-      ? (d.destination.startsWith('RG') ? `<span class="zone-tag rg">👤${d.destination}</span>` : `<span class="zone-tag fj">🤖${d.destination}</span>`)
+      ? (d.destination.startsWith('RG') ? `<span class="zone-tag rg">👤${d.destination}</span>`
+        : d.destination === 'A2-99' ? `<span class="zone-tag a2d">🤖${d.destination}</span>`
+        : d.destination === 'A2-98' ? `<span class="zone-tag a2d">🔩${d.destination}</span>`
+        : `<span class="zone-tag fj">🤖${d.destination}</span>`)
       : '';
     html += `<tr>
       <td style="color:#999;font-size:11px;white-space:nowrap">${d.created_at}</td>
