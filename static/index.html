@@ -478,7 +478,7 @@ function renderResults(items) {
       let rc = '', ld = d.location||'';
       if (ld === '自动分检区') { rc = 'row-a2d'; ld = '<span class="zone-tag special">🤖 '+ld+'</span>'; }
       else if (ld === '自动分检螺帽区') { rc = 'row-a2n'; ld = '<span class="zone-tag special">🔩 '+ld+'</span>'; }
-      return `<tr class="${rc}"><td style="font-weight:600">${d.barrel_no}</td><td>${ld}</td><td>${d.updated_at||d.time||''}</td></tr>`;
+      return `<tr class="${rc}"><td style="font-weight:600">${d.barrel_no}</td><td>${ld}</td><td>${d.update_time||d.updated_at||d.time||''}</td></tr>`;
     }).join('');
     count.textContent = t('query_count', items.length);
   }
