@@ -466,9 +466,6 @@ function switchLang() {
   applyLang();
 }
 
-// Apply on load
-applyLang();
-
 // ═══════════════════════════════════════════════════════
 // 主逻辑 / Logic chính
 // ═══════════════════════════════════════════════════════
@@ -483,6 +480,9 @@ let deleteMode = 'single';
 let inboundBatch = [];
 let outboundBatch = [];
 let deleteBatch = [];
+
+// Apply language on load (after all state vars are declared)
+applyLang();
 let inboundSingleBarrel = null;
 let outboundSingleBarrel = null;
 let outboundSingleFrom = null;
