@@ -9,10 +9,15 @@ from pydantic import BaseModel
 import asyncio
 import io
 import os
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from libsql_client import create_client
 
 app = FastAPI(title="生管部在制品桶号管理系统")
+
+# 时区
+TZ = timezone(timedelta(hours=7))  # GMT+7 (越南/中国)
+def now_str(fmt="%Y-%m-%d %H:%M:%S"):
+    return datetime.now(TZ).strftime(fmt)
 
 # ─── Turso 云数据库 ───────────────────────────────────────
 
@@ -97,7 +102,7 @@ class DeleteRequest(BaseModel):
 
 @app.post("/api/inbound")
 def inbound(req: InboundRequest):
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now = now_str("%Y-%m-%d %H:%M:%S")
 
     rows = db("SELECT * FROM barrel_inventory WHERE barrel_no = ?", [req.barrel_no])
     if rows and rows[0]["status"] == "in":
@@ -116,7 +121,7 @@ def inbound(req: InboundRequest):
 
 @app.post("/api/inbound/batch")
 def inbound_batch(req: BatchInboundRequest):
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now = now_str("%Y-%m-%d %H:%M:%S")
     success_list, skip_list = [], []
 
     for barrel_no in req.barrel_nos:
@@ -143,7 +148,7 @@ def inbound_batch(req: BatchInboundRequest):
 
 @app.post("/api/outbound")
 def outbound(req: OutboundRequest):
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now = now_str("%Y-%m-%d %H:%M:%S")
 
     rows = db("SELECT * FROM barrel_inventory WHERE barrel_no = ? AND status = 'in'", [req.barrel_no])
     if not rows:
@@ -164,7 +169,7 @@ def outbound(req: OutboundRequest):
 
 @app.post("/api/outbound/batch")
 def outbound_batch(req: BatchOutboundRequest):
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now = now_str("%Y-%m-%d %H:%M:%S")
     success_list, not_found_list = [], []
     dest = req.destination.strip()
 
@@ -192,7 +197,7 @@ def outbound_batch(req: BatchOutboundRequest):
 
 @app.delete("/api/barrel/{barrel_no}")
 def delete_barrel(barrel_no: str):
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now = now_str("%Y-%m-%d %H:%M:%S")
     rows = db("SELECT * FROM barrel_inventory WHERE barrel_no = ?", [barrel_no])
     if not rows:
         raise HTTPException(404, f"桶号 {barrel_no} 不存在")
@@ -208,7 +213,7 @@ def delete_barrel(barrel_no: str):
 
 @app.post("/api/barrel/delete/batch")
 def delete_barrel_batch(req: DeleteRequest):
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now = now_str("%Y-%m-%d %H:%M:%S")
     deleted, not_found = [], []
 
     for barrel_no in req.barrel_nos:
@@ -236,7 +241,7 @@ def delete_barrel_batch(req: DeleteRequest):
 @app.post("/api/import")
 def import_data(data: list[dict]):
     """批量导入备份数据"""
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now = now_str("%Y-%m-%d %H:%M:%S")
     imported = 0
     for item in data:
         bn = item.get("barrel_no", "").strip()
@@ -314,7 +319,7 @@ def export_inventory():
     ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
 
     ws.merge_cells("A2:D2")
-    ws["A2"] = f"导出时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}　　共 {len(rows)} 桶在库"
+    ws["A2"] = f"导出时间: {now_str('%Y-%m-%d %H:%M:%S')}　　共 {len(rows)} 桶在库"
     ws["A2"].font = Font(name="微软雅黑", size=10, color="888888")
     ws["A2"].alignment = Alignment(horizontal="center", vertical="center")
 
@@ -346,7 +351,7 @@ def export_inventory():
     wb.save(output)
     output.seek(0)
 
-    filename = f"桶号库存_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    filename = f"桶号库存_{now_str('%Y%m%d_%H%M%S')}.xlsx"
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
