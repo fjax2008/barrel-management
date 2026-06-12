@@ -115,8 +115,8 @@ tr.row-a2n{background:#fffbe6}
     <div class="scan-hint" data-i18n="scan_hint">扫码枪扫描后自动确认，或手动输入桶号按回车</div>
 
     <div class="mode-row">
-      <button class="mode-btn active" data-i18n="mode_single" onclick="setMode('single')">📱 逐个录入</button>
-      <button class="mode-btn batch" data-i18n="mode_batch" onclick="setMode('batch')">📋 批量录入</button>
+      <button class="mode-btn" data-i18n="mode_single" onclick="setMode('single')">📱 逐个录入</button>
+      <button class="mode-btn batch active" data-i18n="mode_batch" onclick="setMode('batch')">📋 批量录入</button>
     </div>
 
     <!-- Batch textarea -->
@@ -252,7 +252,7 @@ setLang(lang);
 
 // ─── Globals ────────────────────────────────────────────────
 const API = '';
-let enterMode = 'single';  // 'single' | 'batch'
+let enterMode = 'batch';  // 'single' | 'batch'
 let currentBarrelNo = null, currentBarrelLoc = null, selectedLoc = null;
 let batchBarrels = [];
 
@@ -289,12 +289,23 @@ function setMode(m) {
 // ─── Batch Input Parser ─────────────────────────────────────
 function parseBatchInput() {
   const raw = document.getElementById('batch-input').value;
-  if (!raw.trim()) { batchBarrels = []; updateBatchCount(); return; }
+  if (!raw.trim()) {
+    batchBarrels = []; updateBatchCount();
+    hideLocPicker();
+    return;
+  }
   // Split by newline, comma, or whitespace
   const parts = raw.split(/[\n,，\s]+/).map(s => s.trim().toUpperCase()).filter(Boolean);
-  // Deduplicate
+  const oldLen = batchBarrels.length;
   batchBarrels = [...new Set(parts)];
   updateBatchCount();
+  // Auto-show location grid when barrels are present in batch mode
+  if (enterMode === 'batch' && batchBarrels.length > 0 && oldLen === 0) {
+    showBatchLocPicker();
+  }
+  if (batchBarrels.length === 0 && oldLen > 0) {
+    hideLocPicker();
+  }
 }
 function updateBatchCount() {
   const el = document.getElementById('batch-count');
@@ -320,6 +331,22 @@ function pickLoc(loc, btn) {
   btn.classList.add('selected');
   selectedLoc = loc;
   document.getElementById('btn-confirm').disabled = false;
+}
+
+function showBatchLocPicker() {
+  if (!batchBarrels.length) return;
+  selectedLoc = null;
+  currentBarrelNo = null; currentBarrelLoc = null;
+  document.getElementById('btn-confirm').disabled = true;
+  const bc = document.getElementById('btn-confirm');
+  bc.className = 'btn btn-purple';
+  bc.innerHTML = '✅ <span>' + t('confirm_batch_save') + '</span>';
+  document.getElementById('loc-barrel-no').textContent = '📋 ' + t('batch_count', batchBarrels.length);
+  document.getElementById('loc-barrel-no').className = 'barrel-info';
+  document.getElementById('loc-barrel-detail').textContent = t('new_barrel');
+  buildLocGrid();
+  document.getElementById('loc-picker').classList.add('show');
+  document.getElementById('loc-picker').scrollIntoView({ behavior: 'smooth' });
 }
 
 function showLocPicker(barrelNo, exists, currentLocation) {
@@ -505,7 +532,8 @@ document.getElementById('btn-delete-confirm').addEventListener('click', async fu
 
 // ─── Init ───────────────────────────────────────────────────
 buildLocGrid();
-document.getElementById('main-scanner').focus();
+// Default to batch mode
+setMode('batch');
 document.addEventListener('click', function(e) {
   if (!e.target.closest('input') && !e.target.closest('textarea') && !e.target.closest('button') && !e.target.closest('.lang-btn')) {
     (enterMode==='batch' ? document.getElementById('batch-input') : document.getElementById('main-scanner')).focus();
