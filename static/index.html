@@ -3,11 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>生管部在制品桶号管理</title>
+<title>桶号管理 | Quản lý Barrel</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f2f5;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
-.header{background:linear-gradient(135deg,#1677ff,#0958d9);color:#fff;padding:12px 16px;text-align:center;font-size:16px;font-weight:700;letter-spacing:1px;flex-shrink:0}
+.header{background:linear-gradient(135deg,#1677ff,#0958d9);color:#fff;padding:12px 16px;text-align:center;font-size:16px;font-weight:700;letter-spacing:1px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.header-title{flex:1;text-align:center}
+.lang-btn{background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-weight:600}
+.lang-btn:active{background:rgba(255,255,255,.35)}
 .tabs{display:flex;background:#fff;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .tab{flex:1;padding:12px 4px;text-align:center;font-size:13px;border:none;background:none;color:#888;font-weight:600;cursor:pointer;border-bottom:3px solid transparent}
 .tab.active{color:#1677ff;border-bottom-color:#1677ff}
@@ -85,56 +88,60 @@ th{background:#fafafa;font-weight:600;color:#888;font-size:11px}
 </head>
 <body>
 
-<div class="header">🏭 生管部在制品桶号管理</div>
+<div class="header">
+  <button class="lang-btn" onclick="switchLang()" id="lang-btn">🇻🇳 Tiếng Việt</button>
+  <span class="header-title" id="header-title">🏭 生管部在制品桶号管理</span>
+  <span style="width:70px"></span>
+</div>
 <div class="tabs">
-  <button class="tab active" onclick="switchTab('inbound')">📥 入库</button>
-  <button class="tab" onclick="switchTab('outbound')">📤 出库</button>
-  <button class="tab" onclick="switchTab('query')">🔍 查询</button>
-  <button class="tab" onclick="switchTab('logs')">📋 记录</button>
+  <button class="tab active" data-i18n="tab_inbound" onclick="switchTab('inbound')">📥 入库</button>
+  <button class="tab" data-i18n="tab_outbound" onclick="switchTab('outbound')">📤 出库</button>
+  <button class="tab" data-i18n="tab_query" onclick="switchTab('query')">🔍 查询</button>
+  <button class="tab" data-i18n="tab_logs" onclick="switchTab('logs')">📋 记录</button>
 </div>
 <div class="content">
 
 <!-- ═══════════ 入库 ═══════════ -->
 <div id="panel-inbound" class="panel active">
   <div class="mode-row">
-    <button class="mode-btn active" onclick="setInboundMode('single')">🔹 单桶</button>
-    <button class="mode-btn" onclick="setInboundMode('batch')">🔶 批量</button>
+    <button class="mode-btn active" data-i18n="mode_single" onclick="setInboundMode('single')">🔹 单桶</button>
+    <button class="mode-btn" data-i18n="mode_batch" onclick="setInboundMode('batch')">🔶 批量</button>
   </div>
 
   <div class="scan-zone" id="inbound-scan-zone">
     <div class="scan-icon">📷</div>
-    <div class="scan-status" id="inbound-scan-status">等待扫码...</div>
+    <div class="scan-status" id="inbound-scan-status" data-i18n="wait_scan">等待扫码...</div>
     <div class="last-scan empty" id="inbound-last-scan">--</div>
-    <input type="text" class="scan-input-real" id="inbound-scanner" placeholder="扫码枪扫这里..." autocomplete="off">
-    <div class="scan-hint">扫码后自动确认，无需点击</div>
+    <input type="text" class="scan-input-real" id="inbound-scanner" data-i18n-placeholder="scan_placeholder" placeholder="扫码枪扫这里..." autocomplete="off">
+    <div class="scan-hint" data-i18n="scan_hint">扫码后自动确认，无需点击</div>
   </div>
 
   <!-- 批量列表 -->
   <div class="card batch-section" id="inbound-batch-card" style="display:none">
     <div class="batch-header">
       <span class="batch-count" id="inbound-batch-count">已扫 0 桶</span>
-      <button class="btn-default btn-sm" onclick="clearInboundBatch()">清空</button>
+      <button class="btn-default btn-sm" data-i18n="clear" onclick="clearInboundBatch()">清空</button>
     </div>
     <div class="batch-list" id="inbound-batch-list"></div>
   </div>
 
   <!-- 单桶入库：储位选择 -->
   <div class="card loc-section" id="inbound-single-loc" style="display:none">
-    <div class="card-title">📍 <span id="inbound-single-barrel" style="color:#1677ff">--</span> → 选择储位</div>
-    <div class="loc-label">📦 入库储区 A2 (01~99)</div>
+    <div class="card-title">📍 <span id="inbound-single-barrel" style="color:#1677ff">--</span> → <span data-i18n="pick_location">选择储位</span></div>
+    <div class="loc-label" data-i18n="loc_a2_label">📦 入库储区 A2 (01~99)</div>
     <div class="loc-grid" id="loc-inbound-single"></div>
-    <button class="btn btn-success" id="btn-inbound-single" disabled onclick="confirmSingleInbound()">✅ 确认入库</button>
-    <button class="btn btn-default" onclick="cancelSingleInbound()">取消</button>
+    <button class="btn btn-success" id="btn-inbound-single" disabled onclick="confirmSingleInbound()">✅ <span data-i18n="confirm_inbound">确认入库</span></button>
+    <button class="btn btn-default" data-i18n="cancel" onclick="cancelSingleInbound()">取消</button>
   </div>
 
   <!-- 批量入库：储位选择 -->
   <div id="inbound-batch-confirm" style="display:none">
     <div class="card loc-section">
-      <div class="card-title">📍 全部入库到哪个储位？</div>
-      <div class="loc-label">📦 入库储区 A2 (01~99)</div>
+      <div class="card-title" data-i18n="batch_inbound_title">📍 全部入库到哪个储位？</div>
+      <div class="loc-label" data-i18n="loc_a2_label">📦 入库储区 A2 (01~99)</div>
       <div class="loc-grid" id="loc-inbound-batch"></div>
-      <button class="btn btn-success" id="btn-inbound-batch" disabled onclick="confirmBatchInbound()">✅ 全部入库</button>
-      <button class="btn btn-default" onclick="cancelBatchInbound()">取消</button>
+      <button class="btn btn-success" id="btn-inbound-batch" disabled onclick="confirmBatchInbound()">✅ <span data-i18n="batch_inbound_btn">全部入库</span></button>
+      <button class="btn btn-default" data-i18n="cancel" onclick="cancelBatchInbound()">取消</button>
     </div>
   </div>
 
@@ -144,38 +151,38 @@ th{background:#fafafa;font-weight:600;color:#888;font-size:11px}
 <!-- ═══════════ 出库 ═══════════ -->
 <div id="panel-outbound" class="panel">
   <div class="mode-row">
-    <button class="mode-btn active" onclick="setOutboundMode('single')">🔹 单桶</button>
-    <button class="mode-btn" onclick="setOutboundMode('batch')">🔶 批量</button>
+    <button class="mode-btn active" data-i18n="mode_single" onclick="setOutboundMode('single')">🔹 单桶</button>
+    <button class="mode-btn" data-i18n="mode_batch" onclick="setOutboundMode('batch')">🔶 批量</button>
   </div>
 
   <div class="scan-zone" id="outbound-scan-zone">
     <div class="scan-icon">📷</div>
-    <div class="scan-status" id="outbound-scan-status">等待扫码...</div>
+    <div class="scan-status" id="outbound-scan-status" data-i18n="wait_scan">等待扫码...</div>
     <div class="last-scan empty" id="outbound-last-scan">--</div>
-    <input type="text" class="scan-input-real" id="outbound-scanner" placeholder="扫码枪扫这里..." autocomplete="off">
-    <div class="scan-hint">扫码后自动确认，无需点击</div>
+    <input type="text" class="scan-input-real" id="outbound-scanner" data-i18n-placeholder="scan_placeholder" placeholder="扫码枪扫这里..." autocomplete="off">
+    <div class="scan-hint" data-i18n="scan_hint">扫码后自动确认，无需点击</div>
   </div>
 
   <!-- 单桶出库：显示储位 + 选目的地 -->
   <div class="card" id="outbound-single-card" style="display:none">
     <div style="text-align:center;padding:4px 0 8px">
       <div style="font-size:20px;font-weight:800;color:#1677ff" id="outbound-single-barrel">--</div>
-      <div style="font-size:13px;color:#888;margin:4px 0">当前储位</div>
+      <div style="font-size:13px;color:#888;margin:4px 0" data-i18n="current_location">当前储位</div>
       <div style="font-size:20px;font-weight:700;color:#52c41a" id="outbound-single-from">--</div>
     </div>
-    <div class="card-title">🚚 选择出库目的地</div>
-    <div class="loc-label">👤 人工区</div>
+    <div class="card-title" data-i18n="pick_dest">🚚 选择出库目的地</div>
+    <div class="loc-label" data-i18n="zone_rg">👤 人工区</div>
     <div class="loc-grid" id="dest-rg-single"></div>
-    <div class="loc-label">🤖 自动分检区</div>
+    <div class="loc-label" data-i18n="zone_fj">🤖 自动分检区</div>
     <div class="loc-grid" id="dest-fj-single"></div>
-    <button class="btn btn-default" onclick="cancelOutboundSingle()">取消</button>
+    <button class="btn btn-default" data-i18n="cancel" onclick="cancelOutboundSingle()">取消</button>
   </div>
 
   <!-- 批量出库列表 -->
   <div class="card batch-section" id="outbound-batch-card" style="display:none">
     <div class="batch-header">
       <span class="batch-count" id="outbound-batch-count">已扫 0 桶</span>
-      <button class="btn-default btn-sm" onclick="clearOutboundBatch()">清空</button>
+      <button class="btn-default btn-sm" data-i18n="clear" onclick="clearOutboundBatch()">清空</button>
     </div>
     <div class="batch-list" id="outbound-batch-list"></div>
   </div>
@@ -183,13 +190,13 @@ th{background:#fafafa;font-weight:600;color:#888;font-size:11px}
   <!-- 批量出库：目的地选择 -->
   <div id="outbound-batch-dest" style="display:none">
     <div class="card">
-      <div class="card-title">🚚 全部出库到哪个目的地？</div>
-      <div class="loc-label">👤 人工区</div>
+      <div class="card-title" data-i18n="batch_outbound_title">🚚 全部出库到哪个目的地？</div>
+      <div class="loc-label" data-i18n="zone_rg">👤 人工区</div>
       <div class="loc-grid" id="dest-rg-batch"></div>
-      <div class="loc-label">🤖 自动分检区</div>
+      <div class="loc-label" data-i18n="zone_fj">🤖 自动分检区</div>
       <div class="loc-grid" id="dest-fj-batch"></div>
-      <button class="btn btn-danger" onclick="confirmBatchOutbound()">📤 全部出库</button>
-      <button class="btn btn-default" onclick="cancelBatchOutbound()">取消</button>
+      <button class="btn btn-danger" onclick="confirmBatchOutbound()">📤 <span data-i18n="batch_outbound_btn">全部出库</span></button>
+      <button class="btn btn-default" data-i18n="cancel" onclick="cancelBatchOutbound()">取消</button>
     </div>
   </div>
 
@@ -199,36 +206,36 @@ th{background:#fafafa;font-weight:600;color:#888;font-size:11px}
 <!-- ═══════════ 查询 ═══════════ -->
 <div id="panel-query" class="panel">
   <div class="card">
-    <div class="card-title">🔍 库存查询</div>
-    <input type="text" class="scan-input-real" id="query-input" placeholder="输入桶号或储位，回车查询" style="margin-bottom:8px">
+    <div class="card-title" data-i18n="query_title">🔍 库存查询</div>
+    <input type="text" class="scan-input-real" id="query-input" data-i18n-placeholder="query_placeholder" placeholder="输入桶号或储位，回车查询" style="margin-bottom:8px">
     <div style="display:flex;gap:6px">
-      <button class="btn btn-default btn-sm" style="flex:1" onclick="loadAllInventory()">📦 全部在库</button>
-      <a class="btn btn-warning btn-sm" href="/api/export" style="flex:1;text-decoration:none;text-align:center">📥 导出 Excel</a>
+      <button class="btn btn-default btn-sm" style="flex:1" onclick="loadAllInventory()">📦 <span data-i18n="all_inventory">全部在库</span></button>
+      <a class="btn btn-warning btn-sm" href="/api/export" style="flex:1;text-decoration:none;text-align:center" data-i18n="export_excel">📥 导出 Excel</a>
     </div>
     <div id="query-result"></div>
   </div>
 
   <div class="card">
-    <div class="card-title">🗑 删除桶号</div>
+    <div class="card-title" data-i18n="delete_title">🗑 删除桶号</div>
     <div class="mode-row">
-      <button class="mode-btn active" onclick="setDeleteMode('single')">🔹 单桶</button>
-      <button class="mode-btn" onclick="setDeleteMode('batch')">🔶 批量</button>
+      <button class="mode-btn active" data-i18n="mode_single" onclick="setDeleteMode('single')">🔹 单桶</button>
+      <button class="mode-btn" data-i18n="mode_batch" onclick="setDeleteMode('batch')">🔶 批量</button>
     </div>
-    <input type="text" class="scan-input-real" id="delete-input" placeholder="扫码或输入桶号，回车确认" style="margin-bottom:8px">
+    <input type="text" class="scan-input-real" id="delete-input" data-i18n-placeholder="delete_placeholder" placeholder="扫码或输入桶号，回车确认" style="margin-bottom:8px">
     <!-- 单桶确认 -->
     <div id="delete-single-confirm" style="display:none">
       <div class="result info" id="delete-single-info"></div>
-      <button class="btn btn-danger" onclick="confirmDeleteSingle()">⚠️ 确认删除此桶号</button>
-      <button class="btn btn-default" onclick="cancelDelete()">取消</button>
+      <button class="btn btn-danger" data-i18n="confirm_delete_one" onclick="confirmDeleteSingle()">⚠️ 确认删除此桶号</button>
+      <button class="btn btn-default" data-i18n="cancel" onclick="cancelDelete()">取消</button>
     </div>
     <!-- 批量列表 -->
     <div id="delete-batch-section" style="display:none">
       <div class="batch-header">
         <span class="batch-count" id="delete-batch-count">已选 0 桶</span>
-        <button class="btn-default btn-sm" onclick="clearDeleteBatch()">清空</button>
+        <button class="btn-default btn-sm" data-i18n="clear" onclick="clearDeleteBatch()">清空</button>
       </div>
       <div class="batch-list" id="delete-batch-list"></div>
-      <button class="btn btn-danger" onclick="confirmDeleteBatch()">⚠️ 确认删除全部</button>
+      <button class="btn btn-danger" data-i18n="confirm_delete_all" onclick="confirmDeleteBatch()">⚠️ 确认删除全部</button>
     </div>
     <div id="delete-msg"></div>
   </div>
@@ -237,7 +244,7 @@ th{background:#fafafa;font-weight:600;color:#888;font-size:11px}
 <!-- ═══════════ 记录 ═══════════ -->
 <div id="panel-logs" class="panel">
   <div class="card">
-    <div class="card-title">📋 最近操作记录</div>
+    <div class="card-title" data-i18n="logs_title">📋 最近操作记录</div>
     <div id="logs-content"></div>
   </div>
 </div>
@@ -245,6 +252,222 @@ th{background:#fafafa;font-weight:600;color:#888;font-size:11px}
 </div>
 
 <script>
+// ═══════════════════════════════════════════════════════
+// 多语言支持 / Hỗ trợ đa ngôn ngữ
+// ═══════════════════════════════════════════════════════
+
+const I18N = {
+  zh: {
+    header_title: '🏭 生管部在制品桶号管理',
+    tab_inbound: '📥 入库',
+    tab_outbound: '📤 出库',
+    tab_query: '🔍 查询',
+    tab_logs: '📋 记录',
+    mode_single: '🔹 单桶',
+    mode_batch: '🔶 批量',
+    wait_scan: '等待扫码...',
+    scan_placeholder: '扫码枪扫这里...',
+    scan_hint: '扫码后自动确认，无需点击',
+    scanned: '已扫描',
+    scanned_batch: '已扫 # 桶',
+    clear: '清空',
+    pick_location: '选择储位',
+    loc_a2_label: '📦 入库储区 A2 (01~99)',
+    confirm_inbound: '确认入库',
+    cancel: '取消',
+    batch_inbound_title: '📍 全部入库到哪个储位？',
+    batch_inbound_btn: '全部入库',
+    pick_loc_btn: '📍 选择储位并入库',
+    current_location: '当前储位',
+    pick_dest: '🚚 选择出库目的地',
+    zone_rg: '👤 人工区',
+    zone_fj: '🤖 自动分检区',
+    batch_outbound_title: '🚚 全部出库到哪个目的地？',
+    batch_outbound_btn: '全部出库',
+    pick_dest_btn: '🚚 选择目的地并出库',
+    query_title: '🔍 库存查询',
+    query_placeholder: '输入桶号或储位，回车查询',
+    all_inventory: '全部在库',
+    export_excel: '导出 Excel',
+    delete_title: '🗑 删除桶号',
+    delete_placeholder: '扫码或输入桶号，回车确认',
+    confirm_delete_one: '⚠️ 确认删除此桶号',
+    confirm_delete_all: '⚠️ 确认删除全部',
+    selected_batch: '已选 # 桶',
+    logs_title: '📋 最近操作记录',
+    no_records: '暂无操作记录',
+    no_inventory: '📭 暂无在库记录',
+    not_found: '未找到',
+    total_in_stock: '共 # 桶在库',
+    barrel_no: '桶号',
+    location: '储位',
+    time: '时间',
+    op_time: '时间',
+    action: '操作',
+    dest: '目的地',
+    status: '状态',
+    update_time: '更新时间',
+    status_in: '在库',
+    status_out: '已出库',
+    action_inbound: '入库',
+    action_outbound: '出库',
+    action_delete: '删除',
+    not_in_stock: '不在库中',
+    already_in: '已在',
+    inbound_ok: '桶号 # 已入库 → #',
+    outbound_ok: '桶号 # 已从 # 出库',
+    outbound_ok_dest: '桶号 # 已从 # 出库 → #',
+    not_in_stock_msg: '桶号 # 不在库中，无法出库',
+    already_in_msg: '桶号 # 已在 #，请先出库再入库',
+    confirm_delete: '⚠️ 确定要删除桶号 # 吗？此操作不可恢复！',
+    confirm_delete_batch: '⚠️ 确定要删除 # 个桶号吗？此操作不可恢复！',
+    batch_inbound_ok: '✅ 入库 # 桶 → #',
+    batch_inbound_skip: '⚠️ 跳过:',
+    batch_outbound_ok: '✅ 出库 # 桶 → #',
+    batch_outbound_not_found: '⚠️ 不在库:',
+    batch_delete_ok: '已删除 # 桶',
+    batch_delete_not_found: '# 桶不存在',
+    deleted_ok: '已删除',
+    does_not_exist: '不存在',
+    barrel_exists: '无此桶号',
+    lang_switch: '🇻🇳 Tiếng Việt',
+    match_results: '🔍 "#" 匹配 # 条',
+    goto: '→',
+    barrel: '桶',
+    loc_occupied_hint: '储位 # 已有 #，覆盖？',
+    from: '来自',
+  },
+  vi: {
+    header_title: '🏭 Quản lý Barrel Xưởng',
+    tab_inbound: '📥 Nhập kho',
+    tab_outbound: '📤 Xuất kho',
+    tab_query: '🔍 Tra cứu',
+    tab_logs: '📋 Nhật ký',
+    mode_single: '🔹 Đơn lẻ',
+    mode_batch: '🔶 Hàng loạt',
+    wait_scan: 'Đang chờ quét...',
+    scan_placeholder: 'Quét mã tại đây...',
+    scan_hint: 'Quét xong tự xác nhận',
+    scanned: 'Đã quét',
+    scanned_batch: 'Đã quét # thùng',
+    clear: 'Xóa DS',
+    pick_location: 'Chọn vị trí',
+    loc_a2_label: '📦 Vị trí nhập A2 (01~99)',
+    confirm_inbound: 'Xác nhận nhập kho',
+    cancel: 'Hủy',
+    batch_inbound_title: '📍 Nhập tất cả vào vị trí nào?',
+    batch_inbound_btn: 'Nhập tất cả',
+    pick_loc_btn: '📍 Chọn vị trí và nhập kho',
+    current_location: 'Vị trí hiện tại',
+    pick_dest: '🚚 Chọn nơi xuất kho',
+    zone_rg: '👤 Khu thủ công',
+    zone_fj: '🤖 Khu tự động',
+    batch_outbound_title: '🚚 Xuất tất cả đến đâu?',
+    batch_outbound_btn: 'Xuất tất cả',
+    pick_dest_btn: '🚚 Chọn nơi đến và xuất kho',
+    query_title: '🔍 Tra cứu tồn kho',
+    query_placeholder: 'Nhập mã thùng hoặc vị trí, Enter',
+    all_inventory: 'Tất cả trong kho',
+    export_excel: 'Xuất Excel',
+    delete_title: '🗑 Xóa mã thùng',
+    delete_placeholder: 'Quét/Nhập mã thùng, Enter',
+    confirm_delete_one: '⚠️ Xác nhận xóa mã thùng này',
+    confirm_delete_all: '⚠️ Xác nhận xóa tất cả',
+    selected_batch: 'Đã chọn # thùng',
+    logs_title: '📋 Nhật ký thao tác',
+    no_records: 'Chưa có thao tác nào',
+    no_inventory: '📭 Chưa có barrel trong kho',
+    not_found: 'Không tìm thấy',
+    total_in_stock: 'Tổng # thùng trong kho',
+    barrel_no: 'Mã thùng',
+    location: 'Vị trí',
+    time: 'Thời gian',
+    op_time: 'Thời gian',
+    action: 'Thao tác',
+    dest: 'Nơi đến',
+    status: 'Trạng thái',
+    update_time: 'Cập nhật',
+    status_in: 'Trong kho',
+    status_out: 'Đã xuất',
+    action_inbound: 'Nhập kho',
+    action_outbound: 'Xuất kho',
+    action_delete: 'Xóa',
+    not_in_stock: 'Không có trong kho',
+    already_in: 'đã ở',
+    inbound_ok: 'Thùng # đã nhập kho → #',
+    outbound_ok: 'Thùng # đã xuất từ #',
+    outbound_ok_dest: 'Thùng # đã xuất từ # → #',
+    not_in_stock_msg: 'Thùng # không có trong kho!',
+    already_in_msg: 'Thùng # đã ở #, hãy xuất kho trước',
+    confirm_delete: '⚠️ Xóa thùng #? Không thể khôi phục!',
+    confirm_delete_batch: '⚠️ Xóa # thùng? Không thể khôi phục!',
+    batch_inbound_ok: '✅ Đã nhập # thùng → #',
+    batch_inbound_skip: '⚠️ Bỏ qua:',
+    batch_outbound_ok: '✅ Đã xuất # thùng → #',
+    batch_outbound_not_found: '⚠️ Không có:',
+    batch_delete_ok: 'Đã xóa # thùng',
+    batch_delete_not_found: '# thùng không tồn tại',
+    deleted_ok: 'Đã xóa',
+    does_not_exist: 'Không tồn tại',
+    barrel_exists: 'Không có mã này',
+    lang_switch: '🇨🇳 中文',
+    match_results: '🔍 "#" có # kết quả',
+    goto: '→',
+    barrel: 'thùng',
+    loc_occupied_hint: 'Vị trí # đã có #, ghi đè?',
+    from: 'từ',
+  }
+};
+
+let LANG = localStorage.getItem('barrel_lang') || 'zh';
+
+function t(key, ...args) {
+  let text = (I18N[LANG] && I18N[LANG][key]) || key;
+  args.forEach((a, i) => { text = text.replace('#', a); });
+  return text;
+}
+
+function applyLang() {
+  // HTML data-i18n
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (I18N[LANG] && I18N[LANG][key]) el.textContent = I18N[LANG][key];
+  });
+  // Placeholder
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.dataset.i18nPlaceholder;
+    if (I18N[LANG] && I18N[LANG][key]) el.placeholder = I18N[LANG][key];
+  });
+  // Header
+  document.getElementById('header-title').textContent = t('header_title');
+  document.getElementById('lang-btn').textContent = t('lang_switch');
+  // Buttons that have nested spans for i18n need the span updated, the buttons themselves have text+span
+  // Re-apply the buttons with nested i18n spans
+  const ib = document.getElementById('btn-inbound-single');
+  if (ib) ib.innerHTML = '✅ <span data-i18n="confirm_inbound">' + t('confirm_inbound') + '</span>';
+  const ibb = document.getElementById('btn-inbound-batch');
+  if (ibb) ibb.innerHTML = '✅ <span data-i18n="batch_inbound_btn">' + t('batch_inbound_btn') + '</span>';
+  // Refresh dynamic content
+  if (inboundMode === 'batch') renderInboundBatch();
+  if (outboundMode === 'batch') renderOutboundBatch();
+  if (deleteMode === 'batch') renderDeleteBatch();
+  // Refresh logs if visible
+  if (document.getElementById('panel-logs').classList.contains('active')) loadLogs();
+}
+
+function switchLang() {
+  LANG = LANG === 'zh' ? 'vi' : 'zh';
+  localStorage.setItem('barrel_lang', LANG);
+  applyLang();
+}
+
+// Apply on load
+applyLang();
+
+// ═══════════════════════════════════════════════════════
+// 主逻辑 / Logic chính
+// ═══════════════════════════════════════════════════════
+
 const API = '';
 let occupiedLocations = {};
 
@@ -265,7 +488,6 @@ let selectedBatchDest = null;
 
 // ─── 储位/目的地网格生成 ────────────────────────────────
 
-// 入库储位：仅 A2-01 ~ A2-30
 function buildInboundGrid(containerId) {
   const el = document.getElementById(containerId);
   if (!el) return;
@@ -281,7 +503,7 @@ function buildInboundGrid(containerId) {
 
 function pickInboundLoc(loc, btn, containerId) {
   if (occupiedLocations[loc]) {
-    if (!confirm(`储位 ${loc} 已有 ${occupiedLocations[loc]}，覆盖？`)) return;
+    if (!confirm(t('loc_occupied_hint', loc, occupiedLocations[loc]))) return;
   }
   document.querySelectorAll('#' + containerId + ' .loc-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
@@ -295,7 +517,6 @@ function pickInboundLoc(loc, btn, containerId) {
   }
 }
 
-// 出库目的地：RG01~10, FJ01~10
 function buildDestGrid(rgContainerId, fjContainerId) {
   const rgEl = document.getElementById(rgContainerId);
   const fjEl = document.getElementById(fjContainerId);
@@ -317,7 +538,6 @@ function pickDest(dest, btn, rgId, fjId) {
 
   if (rgId === 'dest-rg-single') {
     selectedOutboundDest = dest;
-    // 选好目的地立即出库
     executeSingleOutbound();
   } else {
     selectedBatchDest = dest;
@@ -391,7 +611,7 @@ document.getElementById('inbound-scanner').addEventListener('keydown', function(
 
 function inboundScan(barrelNo) {
   beep(); flashZone('inbound-scan-zone'); showLastScan('inbound-last-scan', barrelNo);
-  document.getElementById('inbound-scan-status').innerHTML = '<span class="beep-dot"></span>已扫描';
+  document.getElementById('inbound-scan-status').innerHTML = '<span class="beep-dot"></span>' + t('scanned');
 
   if (inboundMode === 'single') {
     inboundSingleBarrel = barrelNo;
@@ -410,6 +630,9 @@ async function showSingleInboundLoc(barrelNo) {
   buildInboundGrid('loc-inbound-single');
   selectedInboundLoc = null;
   document.getElementById('btn-inbound-single').disabled = true;
+  // Update button text
+  const ib = document.getElementById('btn-inbound-single');
+  ib.innerHTML = '✅ <span>' + t('confirm_inbound') + '</span>';
   document.getElementById('inbound-single-loc').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -426,7 +649,14 @@ async function confirmSingleInbound() {
     body: JSON.stringify({ barrel_no: inboundSingleBarrel, location: selectedInboundLoc })
   });
   const data = await resp.json();
-  document.getElementById('inbound-msg').innerHTML = `<div class="result ${data.success ? 'success' : 'error'}">${data.msg}</div>`;
+  let msg;
+  if (data.success) {
+    msg = t('inbound_ok', inboundSingleBarrel, selectedInboundLoc);
+  } else {
+    // Translate backend error message
+    msg = translateMsg(data.msg);
+  }
+  document.getElementById('inbound-msg').innerHTML = `<div class="result ${data.success ? 'success' : 'error'}">${msg}</div>`;
   inboundSingleBarrel = null; selectedInboundLoc = null;
   document.getElementById('inbound-single-loc').style.display = 'none';
   refreshOccupied();
@@ -434,10 +664,26 @@ async function confirmSingleInbound() {
   document.getElementById('inbound-scanner').focus();
 }
 
+// Translate backend Chinese messages
+function translateMsg(msg) {
+  if (LANG === 'zh') return msg;
+  // Common patterns from backend
+  if (msg.includes('不在库中')) {
+    const m = msg.match(/桶号 (\S+) 不在库中/);
+    if (m) return t('not_in_stock_msg', m[1]);
+  }
+  if (msg.includes('已在')) {
+    const m = msg.match(/桶号 (\S+) 已在 (\S+)/);
+    if (m) return t('already_in_msg', m[1], m[2]);
+  }
+  // Fallback: try to keep numbers
+  return msg;
+}
+
 // ─── 批量入库 ──────────────────────────────────────────
 
 function renderInboundBatch() {
-  document.getElementById('inbound-batch-count').textContent = '已扫 ' + inboundBatch.length + ' 桶';
+  document.getElementById('inbound-batch-count').textContent = t('scanned_batch', inboundBatch.length);
   document.getElementById('inbound-batch-list').innerHTML = inboundBatch.map((b, i) =>
     `<div class="batch-item"><span>🛢 ${b}</span><button class="del" onclick="removeInboundBatch(${i})">✕</button></div>`).join('');
 }
@@ -452,6 +698,8 @@ async function showBatchLocPicker() {
   buildInboundGrid('loc-inbound-batch');
   selectedBatchLoc = null;
   document.getElementById('btn-inbound-batch').disabled = true;
+  const ibb = document.getElementById('btn-inbound-batch');
+  ibb.innerHTML = '✅ <span>' + t('batch_inbound_btn') + '</span>';
   document.getElementById('inbound-batch-confirm').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -468,8 +716,8 @@ async function confirmBatchInbound() {
     body: JSON.stringify({ barrel_nos: inboundBatch, location: selectedBatchLoc })
   });
   const data = await resp.json();
-  let msg = `✅ 入库 ${data.success_count} 桶 → ${data.location}`;
-  if (data.skip_list.length > 0) msg += `<br>⚠️ 跳过: ${data.skip_list.join(', ')}`;
+  let msg = t('batch_inbound_ok', data.success_count, data.location);
+  if (data.skip_list.length > 0) msg += '<br>' + t('batch_inbound_skip') + ' ' + data.skip_list.join(', ');
   document.getElementById('inbound-msg').innerHTML = `<div class="result success">${msg}</div>`;
   inboundBatch = []; selectedBatchLoc = null;
   renderInboundBatch();
@@ -484,7 +732,8 @@ async function confirmBatchInbound() {
   const card = document.getElementById('inbound-batch-card');
   if (card) {
     const btn = document.createElement('button');
-    btn.className = 'btn btn-primary'; btn.textContent = '📍 选择储位并入库'; btn.style.marginTop = '6px';
+    btn.className = 'btn btn-primary'; btn.id = 'inbound-batch-pick-btn';
+    btn.textContent = t('pick_loc_btn'); btn.style.marginTop = '6px';
     btn.onclick = showBatchLocPicker; card.appendChild(btn);
   }
 })();
@@ -497,13 +746,12 @@ document.getElementById('outbound-scanner').addEventListener('keydown', function
 
 async function outboundScan(barrelNo) {
   beep(); flashZone('outbound-scan-zone'); showLastScan('outbound-last-scan', barrelNo);
-  document.getElementById('outbound-scan-status').innerHTML = '<span class="beep-dot"></span>已扫描';
+  document.getElementById('outbound-scan-status').innerHTML = '<span class="beep-dot"></span>' + t('scanned');
 
   if (outboundMode === 'single') {
-    // 查储位
     const qResp = await fetch(API + '/api/inventory/' + encodeURIComponent(barrelNo));
     if (!qResp.ok) {
-      document.getElementById('outbound-msg').innerHTML = `<div class="result error">❌ 桶号 ${barrelNo} 不在库中</div>`;
+      document.getElementById('outbound-msg').innerHTML = `<div class="result error">❌ ${t('not_in_stock_msg', barrelNo)}</div>`;
       setTimeout(() => { document.getElementById('outbound-msg').innerHTML = ''; }, 2000);
       document.getElementById('outbound-scanner').focus();
       return;
@@ -537,7 +785,13 @@ async function executeSingleOutbound() {
     body: JSON.stringify({ barrel_no: outboundSingleBarrel, destination: selectedOutboundDest })
   });
   const data = await resp.json();
-  document.getElementById('outbound-msg').innerHTML = `<div class="result ${data.success ? 'success' : 'error'}">${data.msg}</div>`;
+  let msg;
+  if (data.success) {
+    msg = t('outbound_ok_dest', outboundSingleBarrel, outboundSingleFrom, selectedOutboundDest);
+  } else {
+    msg = translateMsg(data.msg);
+  }
+  document.getElementById('outbound-msg').innerHTML = `<div class="result ${data.success ? 'success' : 'error'}">${msg}</div>`;
   outboundSingleBarrel = null; outboundSingleFrom = null; selectedOutboundDest = null;
   document.getElementById('outbound-single-card').style.display = 'none';
   refreshOccupied();
@@ -548,7 +802,7 @@ async function executeSingleOutbound() {
 // ─── 批量出库 ──────────────────────────────────────────
 
 function renderOutboundBatch() {
-  document.getElementById('outbound-batch-count').textContent = '已扫 ' + outboundBatch.length + ' 桶';
+  document.getElementById('outbound-batch-count').textContent = t('scanned_batch', outboundBatch.length);
   document.getElementById('outbound-batch-list').innerHTML = outboundBatch.map((b, i) =>
     `<div class="batch-item"><span>🛢 ${b}</span><button class="del" onclick="removeOutboundBatch(${i})">✕</button></div>`).join('');
 }
@@ -577,9 +831,9 @@ async function confirmBatchOutbound() {
     body: JSON.stringify({ barrel_nos: outboundBatch, destination: selectedBatchDest })
   });
   const data = await resp.json();
-  let details = data.success_list.map(i => `${i.barrel_no}←${i.from_location}`).join(' | ');
-  let msg = `✅ 出库 ${data.success_count} 桶 → ${selectedBatchDest}<br>${details}`;
-  if (data.not_found_list.length > 0) msg += `<br>⚠️ 不在库: ${data.not_found_list.join(', ')}`;
+  let details = data.success_list.map(i => `${i.barrel_no} ← ${i.from_location}`).join(' | ');
+  let msg = t('batch_outbound_ok', data.success_count, selectedBatchDest) + '<br>' + details;
+  if (data.not_found_list.length > 0) msg += '<br>' + t('batch_outbound_not_found') + ' ' + data.not_found_list.join(', ');
   document.getElementById('outbound-msg').innerHTML = `<div class="result success">${msg}</div>`;
   outboundBatch = []; selectedBatchDest = null;
   renderOutboundBatch();
@@ -594,7 +848,8 @@ async function confirmBatchOutbound() {
   const card = document.getElementById('outbound-batch-card');
   if (card) {
     const btn = document.createElement('button');
-    btn.className = 'btn btn-primary'; btn.textContent = '🚚 选择目的地并出库'; btn.style.marginTop = '6px';
+    btn.className = 'btn btn-primary'; btn.id = 'outbound-batch-pick-btn';
+    btn.textContent = t('pick_dest_btn'); btn.style.marginTop = '6px';
     btn.onclick = showBatchDestPicker; card.appendChild(btn);
   }
 })();
@@ -618,10 +873,9 @@ document.getElementById('delete-input').addEventListener('keydown', function(e) 
 async function deleteLookup(barrelNo) {
   beep();
   if (deleteMode === 'single') {
-    // 查询桶号信息
     const resp = await fetch(API + '/api/inventory/' + encodeURIComponent(barrelNo));
     if (!resp.ok) {
-      document.getElementById('delete-msg').innerHTML = `<div class="result error">桶号 ${barrelNo} 不存在</div>`;
+      document.getElementById('delete-msg').innerHTML = `<div class="result error">${t('does_not_exist')}: ${barrelNo}</div>`;
       setTimeout(() => { document.getElementById('delete-msg').innerHTML = ''; }, 2000);
       document.getElementById('delete-input').focus();
       return;
@@ -629,7 +883,7 @@ async function deleteLookup(barrelNo) {
     const data = await resp.json();
     document.getElementById('delete-single-info').innerHTML = `
       🛢 <b>${data.barrel_no}</b> &nbsp; 📍 ${data.location} &nbsp;
-      <span class="badge badge-${data.status==='in'?'in':'out'}">${data.status==='in'?'在库':'已出库'}</span>
+      <span class="badge badge-${data.status==='in'?'in':'out'}">${data.status==='in' ? t('status_in') : t('status_out')}</span>
       <br><span style="font-size:11px;color:#999">${data.update_time}</span>`;
     document.getElementById('delete-single-confirm').style.display = 'block';
     window._deleteBarrel = barrelNo;
@@ -644,7 +898,7 @@ async function deleteLookup(barrelNo) {
 async function confirmDeleteSingle() {
   const barrelNo = window._deleteBarrel;
   if (!barrelNo) return;
-  if (!confirm(`⚠️ 确定要删除桶号 ${barrelNo} 吗？此操作不可恢复！`)) return;
+  if (!confirm(t('confirm_delete', barrelNo))) return;
   const resp = await fetch(API + '/api/barrel/' + encodeURIComponent(barrelNo), { method: 'DELETE' });
   const data = await resp.json();
   document.getElementById('delete-msg').innerHTML = `<div class="result ${data.success ? 'success' : 'error'}">${data.msg}</div>`;
@@ -662,7 +916,7 @@ function cancelDelete() {
 }
 
 function renderDeleteBatch() {
-  document.getElementById('delete-batch-count').textContent = '已选 ' + deleteBatch.length + ' 桶';
+  document.getElementById('delete-batch-count').textContent = t('selected_batch', deleteBatch.length);
   document.getElementById('delete-batch-list').innerHTML = deleteBatch.map((b, i) =>
     `<div class="batch-item"><span>🛢 ${b}</span><button class="del" onclick="removeDeleteBatch(${i})">✕</button></div>`).join('');
 }
@@ -672,14 +926,14 @@ function clearDeleteBatch() { deleteBatch = []; renderDeleteBatch(); }
 
 async function confirmDeleteBatch() {
   if (deleteBatch.length === 0) return;
-  if (!confirm(`⚠️ 确定要删除 ${deleteBatch.length} 个桶号吗？此操作不可恢复！`)) return;
+  if (!confirm(t('confirm_delete_batch', deleteBatch.length))) return;
   const resp = await fetch(API + '/api/barrel/delete/batch', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ barrel_nos: deleteBatch })
   });
   const data = await resp.json();
-  let msg = `✅ ${data.msg}`;
-  if (data.not_found.length > 0) msg += `<br>⚠️ 不存在: ${data.not_found.join(', ')}`;
+  let msg = t('batch_delete_ok', data.deleted.length);
+  if (data.not_found.length > 0) msg += '<br>' + t('batch_delete_not_found', data.not_found.length);
   document.getElementById('delete-msg').innerHTML = `<div class="result success">${msg}</div>`;
   deleteBatch = [];
   renderDeleteBatch();
@@ -717,20 +971,20 @@ async function searchInventory() {
   if (r1.ok) {
     const data = await r1.json();
     if (data.length === 0) {
-      document.getElementById('query-result').innerHTML = `<div class="result error">未找到: ${val}</div>`;
+      document.getElementById('query-result').innerHTML = `<div class="result error">${t('not_found')}: ${val}</div>`;
     } else if (data.length === 1) {
       const d = data[0];
       document.getElementById('query-result').innerHTML = `
         <div class="result info">
-          <div class="info-row"><span class="info-label">桶号</span><span class="info-value">🛢 ${d.barrel_no}</span></div>
-          <div class="info-row"><span class="info-label">储位</span><span class="info-value">📍 ${d.location}</span></div>
-          <div class="info-row"><span class="info-label">状态</span><span class="info-value"><span class="badge badge-${d.status==='in'?'in':'out'}">${d.status==='in'?'在库':'已出库'}</span></span></div>
-          <div class="info-row"><span class="info-label">更新时间</span><span class="info-value">${d.update_time}</span></div>
+          <div class="info-row"><span class="info-label">${t('barrel_no')}</span><span class="info-value">🛢 ${d.barrel_no}</span></div>
+          <div class="info-row"><span class="info-label">${t('location')}</span><span class="info-value">📍 ${d.location}</span></div>
+          <div class="info-row"><span class="info-label">${t('status')}</span><span class="info-value"><span class="badge badge-${d.status==='in'?'in':'out'}">${d.status==='in' ? t('status_in') : t('status_out')}</span></span></div>
+          <div class="info-row"><span class="info-label">${t('update_time')}</span><span class="info-value">${d.update_time}</span></div>
         </div>`;
     } else {
-      let html = `<div class="result info"><strong>🔍 "${val}" 匹配 ${data.length} 条</strong>`;
+      let html = `<div class="result info"><strong>${t('match_results', val, data.length)}</strong>`;
       data.forEach(d => {
-        const badge = d.status==='in' ? '<span class="badge badge-in">在库</span>' : '<span class="badge badge-out">已出库</span>';
+        const badge = d.status==='in' ? `<span class="badge badge-in">${t('status_in')}</span>` : `<span class="badge badge-out">${t('status_out')}</span>`;
         html += `<div class="info-row"><span>🛢 ${d.barrel_no}</span><span>📍 ${d.location}</span>${badge}</div>`;
       });
       html += '</div>';
@@ -739,7 +993,7 @@ async function searchInventory() {
     document.getElementById('query-input').focus();
     return;
   }
-  document.getElementById('query-result').innerHTML = `<div class="result error">未找到: ${val}</div>`;
+  document.getElementById('query-result').innerHTML = `<div class="result error">${t('not_found')}: ${val}</div>`;
   document.getElementById('query-input').focus();
 }
 
@@ -747,14 +1001,14 @@ async function loadAllInventory() {
   const resp = await fetch(API + '/api/inventory');
   const data = await resp.json();
   if (data.length === 0) {
-    document.getElementById('query-result').innerHTML = '<div class="result info">📭 暂无在库记录</div>';
+    document.getElementById('query-result').innerHTML = `<div class="result info">${t('no_inventory')}</div>`;
     return;
   }
-  let html = `<table><thead><tr><th>桶号</th><th>储位</th><th>时间</th></tr></thead><tbody>`;
+  let html = `<table><thead><tr><th>${t('barrel_no')}</th><th>${t('location')}</th><th>${t('time')}</th></tr></thead><tbody>`;
   data.forEach(d => {
     html += `<tr><td>🛢 ${d.barrel_no}</td><td>📍 ${d.location}</td><td style="color:#999;font-size:11px">${d.update_time}</td></tr>`;
   });
-  html += `</tbody></table><div style="margin-top:6px;color:#999;font-size:12px;text-align:center">共 ${data.length} 桶在库</div>`;
+  html += `</tbody></table><div style="margin-top:6px;color:#999;font-size:12px;text-align:center">${t('total_in_stock', data.length)}</div>`;
   document.getElementById('query-result').innerHTML = html;
 }
 
@@ -764,19 +1018,20 @@ async function loadLogs() {
   const resp = await fetch(API + '/api/logs?limit=50');
   const data = await resp.json();
   if (data.length === 0) {
-    document.getElementById('logs-content').innerHTML = '<div class="result info">暂无操作记录</div>';
+    document.getElementById('logs-content').innerHTML = `<div class="result info">${t('no_records')}</div>`;
     return;
   }
-  let html = '<table><thead><tr><th>时间</th><th>桶号</th><th>操作</th><th>储位</th><th>目的地</th></tr></thead><tbody>';
+  let html = `<table><thead><tr><th>${t('op_time')}</th><th>${t('barrel_no')}</th><th>${t('action')}</th><th>${t('location')}</th><th>${t('dest')}</th></tr></thead><tbody>`;
   data.forEach(d => {
-    const actionIcon = d.action === '入库' ? '📥' : d.action === '出库' ? '📤' : '🗑';
+    const actionMap = { '入库': '📥 ' + t('action_inbound'), '出库': '📤 ' + t('action_outbound'), '删除': '🗑 ' + t('action_delete') };
+    const actionText = actionMap[d.action] || d.action;
     const destTag = d.destination
       ? (d.destination.startsWith('RG') ? `<span class="zone-tag rg">👤${d.destination}</span>` : `<span class="zone-tag fj">🤖${d.destination}</span>`)
       : '';
     html += `<tr>
       <td style="color:#999;font-size:11px;white-space:nowrap">${d.created_at}</td>
       <td>${d.barrel_no}</td>
-      <td>${d.action==='入库'?'📥':'📤'} ${d.action}</td>
+      <td>${actionText}</td>
       <td>${d.location}</td>
       <td>${destTag}</td>
     </tr>`;
