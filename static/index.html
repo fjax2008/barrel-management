@@ -309,9 +309,11 @@ document.getElementById('scanner').addEventListener('keydown', function(e) {
 });
 
 function renderChips() {
-  document.getElementById('scanned-num').textContent = barrels.length;
-  if (!barrels.length) { return; }
-  let h = '<span class="label">' + t('scanned_label') + '</span>';
+  if (!barrels.length) {
+    document.getElementById('barrel-chips').innerHTML = '<span class="label"></span><span data-i18n="scanned_label">' + t('scanned_label') + '</span>：<span id="scanned-num" style="color:#1677ff;font-weight:700;margin-left:2px">0</span><span> 桶</span>';
+    return;
+  }
+  let h = '<span class="label"></span><span>' + t('scanned_label') + '</span>：<span id="scanned-num" style="color:#1677ff;font-weight:700;margin-left:2px">' + barrels.length + '</span><span> 桶</span>';
   for (let i = 0; i < barrels.length; i++) {
     h += `<span class="barrel-chip">${barrels[i]}<span class="chip-x" onclick="removeBarrel(${i})">✕</span></span>`;
   }
