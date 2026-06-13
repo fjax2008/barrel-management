@@ -223,7 +223,7 @@ const I18N = {
     no_barrels: '请先扫码添加桶号',
     detail_hide: '🔎 收起查询',
     deleted: '🗑 桶号 # 已删除',
-    not_found: '未找到桶号 #', no_results: '暂无库存记录',
+    not_found: '未找到桶号 #', no_results: '暂无库存记录', checking: '查询中…',
     export_success: '📥 Excel 已导出', query_count: '共 # 条',
     confirm_delete_msg: '🗑 已删除桶号 #（原位置：#）',
     footer_notice: '⚠️ 本网站桶号数据仅供生管部内部查询使用，如有疑问，请联系生管',
@@ -373,6 +373,7 @@ async function confirmSave() {
     beep();
     showToast(t('saved', barrels.length, selectedLoc), 'success');
     clearBarrels();
+    fetchTodayCount();
   } catch(e) { showToast(e.message, 'error'); }
 }
 document.getElementById('btn-confirm').addEventListener('click', confirmSave);
@@ -516,17 +517,6 @@ document.getElementById('quick-query').addEventListener('keydown', function(e) {
 document.addEventListener('click', function(e) {
   if (!e.target.closest('input') && !e.target.closest('button') && !e.target.closest('.lang-btn') && !e.target.closest('.chip-x')) {
     document.getElementById('scanner').focus();
-fetchTodayCount();
-
-async function fetchTodayCount() {
-  try {
-    const resp = await fetch(API + '/api/inventory');
-    const data = await resp.json();
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    const count = (Array.isArray(data)?data:[]).filter(d => (d.update_time||'').startsWith(today)).length;
-    document.getElementById('today-count').textContent = count;
-  } catch(e) {}
-}
   }
 });
 
