@@ -138,27 +138,24 @@ def inbound(req: InboundRequest):
 @app.post("/api/inbound/batch")
 def inbound_batch(req: BatchInboundRequest):
     now = now_str("%Y-%m-%d %H:%M:%S")
-    success_list = []
-
-    for barrel_no in req.barrel_nos:
-        barrel_no = barrel_no.strip()
-        if not barrel_no:
-            continue
-        rows = db("SELECT * FROM barrel_inventory WHERE barrel_no = ?", [barrel_no])
-        exists = rows and rows[0]["status"] == "in"
-        old_loc = rows[0]["location"] if exists else ""
-        action = "移动" if exists else "入库"
-
-        db_batch([
-            ("INSERT OR REPLACE INTO barrel_inventory (barrel_no, location, status, update_time) VALUES (?, ?, 'in', ?)",
-             [barrel_no, req.location, now]),
-            ("INSERT INTO barrel_log (barrel_no, action, location, created_at) VALUES (?, ?, ?, ?)",
-             [barrel_no, action, req.location, now]),
-        ])
-        success_list.append(barrel_no)
-
-    return {"success": True, "location": req.location, "success_count": len(success_list),
-            "success_list": success_list}
+    clean = [bn.strip() for bn in req.barrel_nos if bn.strip()]
+    if not clean:
+        return {"success": True, "location": req.location, "success_count": 0, "success_list": []}
+    # 批量查询已有桶号（一趟往返）
+    placeholders = ",".join(["?"] * len(clean))
+    existing = db(f"SELECT barrel_no FROM barrel_inventory WHERE barrel_no IN ({placeholders})", clean)
+    exists_set = {r["barrel_no"] for r in existing}
+    # 批量写入（一趟往返）
+    stmts = []
+    for bn in clean:
+        action = "移动" if bn in exists_set else "入库"
+        stmts.append(("INSERT OR REPLACE INTO barrel_inventory (barrel_no, location, status, update_time) VALUES (?, ?, 'in', ?)",
+                      [bn, req.location, now]))
+        stmts.append(("INSERT INTO barrel_log (barrel_no, action, location, created_at) VALUES (?, ?, ?, ?)",
+                      [bn, action, req.location, now]))
+    db_batch(stmts)
+    return {"success": True, "location": req.location, "success_count": len(clean),
+            "success_list": clean}
 
 
 # ─── 单桶出库 ─────────────────────────────────────────────
