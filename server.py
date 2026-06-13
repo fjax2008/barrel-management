@@ -34,7 +34,15 @@ def db(sql: str, params=None):
             return [dict(zip(rs.columns, row)) for row in rs.rows]
         finally:
             await client.close()
-    return asyncio.run(_exec())
+    try:
+        return asyncio.run(_exec())
+    except RuntimeError:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            import nest_asyncio
+            nest_asyncio.apply()
+            return asyncio.run(_exec())
+        return loop.run_until_complete(_exec())
 
 
 def db_batch(stmts: list):
@@ -50,7 +58,15 @@ def db_batch(stmts: list):
             return results
         finally:
             await client.close()
-    return asyncio.run(_exec())
+    try:
+        return asyncio.run(_exec())
+    except RuntimeError:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            import nest_asyncio
+            nest_asyncio.apply()
+            return asyncio.run(_exec())
+        return loop.run_until_complete(_exec())
 
 
 # ─── 启动初始化 ───────────────────────────────────────────
