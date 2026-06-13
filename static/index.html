@@ -144,7 +144,7 @@ tr.row-a2n{background:#fffbe6}
       placeholder="🔍 扫码或输入桶号，按回车添加"
       autocomplete="off" autocorrect="off" autocapitalize="characters">
     <div class="barrel-chips" id="barrel-chips">
-      <span class="label"></span><span data-i18n="scanned_label">待录入：</span><span id="scanned-num" style="color:#1677ff;font-weight:700;margin-left:2px">0</span><span> 桶</span>
+      <span class="label"></span><span data-i18n="scanned_label">待录入：</span><span id="scanned-num" style="color:#1677ff;font-weight:700;margin-left:2px">0</span><span data-i18n="unit"> 桶</span>
     </div>
   </div>
 
@@ -211,7 +211,7 @@ const I18N = {
     title: '生管桶号管理',
     quick_placeholder: '🔍 快速查桶号，回车查询',
     scan_placeholder: '🔍 扫码或输入桶号，按回车添加',
-    scanned_label: '待录入：',
+    scanned_label: '待录入：', unit: '桶',
     clear: '✕ 清除',
     confirm_save: '✅ 确认保存',
     query_title: '🔍 库存查询', query_placeholder: '输入桶号或储位筛选', query_btn: '搜索',
@@ -235,7 +235,7 @@ const I18N = {
     title: 'Quản lý vị trí thùng',
     quick_placeholder: '🔍 Tra nhanh mã thùng, Enter',
     scan_placeholder: '🔍 Quét hoặc nhập mã thùng, Enter để thêm',
-    scanned_label: 'Chờ nhập:',
+    scanned_label: 'Chờ nhập:', unit: 'thùng',
     clear: '✕ Xóa hết',
     confirm_save: '✅ Xác nhận lưu',
     query_title: '🔍 Tra cứu', query_placeholder: 'Nhập mã thùng hoặc vị trí', query_btn: 'Tìm',
@@ -268,6 +268,8 @@ function setLang(l) {
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.trim()===(l==='zh'?'中':'VN')));
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
+  buildLocGrid();
+  renderChips();
 }
 setLang(lang);
 
@@ -310,10 +312,10 @@ document.getElementById('scanner').addEventListener('keydown', function(e) {
 
 function renderChips() {
   if (!barrels.length) {
-    document.getElementById('barrel-chips').innerHTML = '<span class="label"></span><span data-i18n="scanned_label">' + t('scanned_label') + '</span>：<span id="scanned-num" style="color:#1677ff;font-weight:700;margin-left:2px">0</span><span> 桶</span>';
+    document.getElementById('barrel-chips').innerHTML = '<span class="label"></span><span data-i18n="scanned_label">' + t('scanned_label') + '</span>：<span id="scanned-num" style="color:#1677ff;font-weight:700;margin-left:2px">0</span><span data-i18n="unit"> ' + t('unit') + '</span>';
     return;
   }
-  let h = '<span class="label"></span><span>' + t('scanned_label') + '</span>：<span id="scanned-num" style="color:#1677ff;font-weight:700;margin-left:2px">' + barrels.length + '</span><span> 桶</span>';
+  let h = '<span class="label"></span><span>' + t('scanned_label') + '</span>：<span id="scanned-num" style="color:#1677ff;font-weight:700;margin-left:2px">' + barrels.length + '</span><span> ' + t('unit') + '</span>';
   for (let i = 0; i < barrels.length; i++) {
     h += `<span class="barrel-chip">${barrels[i]}<span class="chip-x" onclick="removeBarrel(${i})">✕</span></span>`;
   }
