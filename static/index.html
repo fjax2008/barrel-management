@@ -271,7 +271,6 @@ function setLang(l) {
   buildLocGrid();
   renderChips();
 }
-setLang(lang);
 
 // ─── Globals ────────────────────────────────────────────────
 const API = '';
@@ -480,6 +479,7 @@ document.getElementById('btn-delete-confirm').addEventListener('click', async fu
 });
 
 // ─── Init ───────────────────────────────────────────────────
+setLang(lang);
 document.getElementById('scanner').focus();
 fetchTodayCount();
 
