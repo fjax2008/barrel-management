@@ -307,16 +307,12 @@ document.getElementById('scanner').addEventListener('keydown', function(e) {
 
 function renderChips() {
   document.getElementById('scanned-num').textContent = barrels.length;
-  const el = document.getElementById('barrel-chips');
-  if (!barrels.length) {
-    el.innerHTML = '<span class="label" data-i18n="scanned_label">' + t('scanned_label') + '</span>';
-    return;
-  }
+  if (!barrels.length) { return; }
   let h = '<span class="label">' + t('scanned_label') + '</span>';
   for (let i = 0; i < barrels.length; i++) {
     h += `<span class="barrel-chip">${barrels[i]}<span class="chip-x" onclick="removeBarrel(${i})">✕</span></span>`;
   }
-  el.innerHTML = h;
+  document.getElementById('barrel-chips').innerHTML = h;
 }
 
 function removeBarrel(idx) {
@@ -326,7 +322,6 @@ function removeBarrel(idx) {
 
 function clearBarrels() {
   barrels = [];
-  document.getElementById('scanned-num').textContent = '0';
   renderChips();
   selectedLoc = null;
   document.querySelectorAll('#loc-grid .loc-btn').forEach(b => b.classList.remove('selected'));
