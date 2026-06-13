@@ -16,7 +16,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* Header */
 .header{text-align:center;padding:12px 0 6px}
-.header h1{font-size:18px;font-weight:700;color:#1a1a2e}
+.header{position:relative}.today-badge{font-size:12px;color:#1677ff;margin-top:2px;background:#e6f4ff;display:inline-block;padding:2px 10px;border-radius:10px}.header h1{font-size:18px;font-weight:700;color:#1a1a2e}
 .lang-switch{position:absolute;top:10px;right:14px;display:flex;gap:4px}
 .lang-btn{background:transparent;border:1px solid #d9d9d9;border-radius:6px;padding:4px 10px;font-size:13px;cursor:pointer;color:#595959}
 .lang-btn.active{background:#1677ff;color:#fff;border-color:#1677ff}
@@ -121,7 +121,7 @@ tr.row-a2n{background:#fffbe6}
 
 <div class="container">
   <div class="header">
-    <h1 data-i18n="title">生管桶号管理</h1>
+    <h1 data-i18n="title">生管桶号管理</h1><div class="today-badge" id="today-badge">📊 今日录入: <span id="today-count">--</span> 桶</div>
   </div>
 
   <!-- Quick search -->
@@ -141,7 +141,7 @@ tr.row-a2n{background:#fffbe6}
       placeholder="🔍 扫码或输入桶号，按回车添加"
       autocomplete="off" autocorrect="off" autocapitalize="characters">
     <div class="barrel-chips" id="barrel-chips">
-      <span class="label" data-i18n="scanned_label">待录入：</span>
+      <span class="label"></span><span data-i18n="scanned_label">待录入：</span><span id="scanned-num" style="color:#1677ff;font-weight:700;margin-left:2px">0</span><span> 桶</span>
     </div>
   </div>
 
@@ -190,7 +190,7 @@ tr.row-a2n{background:#fffbe6}
     <div class="delete-info" id="delete-info" style="display:none">
       <span data-i18n="delete_confirm_prefix">确认删除</span>
       <span class="barrel-no" id="delete-barrel-no"></span>
-      <span data-i18n="delete_confirm_suffix">？此操作不可撤销。</span>
+      <span data-i18n="delete_confirm_suffix">？此操作不可撤销。</span><br><input type="password" id="delete-pwd" placeholder="请输入删除密码" style="margin-top:8px;padding:6px 12px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:14px;text-align:center;width:140px">
     </div>
     <button class="btn btn-danger" id="btn-delete-confirm" style="display:none"
       data-i18n="confirm_delete">⚠️ 确认删除</button>
@@ -217,7 +217,7 @@ const I18N = {
     delete_title: '🗑 删除桶号', delete_placeholder: '扫码或输入桶号，回车确认删除',
     delete_confirm_prefix: '确认删除', delete_confirm_suffix: '？此操作不可撤销。', confirm_delete: '⚠️ 确认删除',
     new_barrel: '请选择储位',
-    a2_storage: '📦 储区 A2 (01~94)', a2_95_label: '📦 纸箱余料', a2_96_label: '🧴 除油旁边', a2_97_label: '🪣 人工分检', a2_99_label: '🤖 自动分检', a2_98_label: '🔩 分检螺帽',
+    a2_storage: '📦 储区 A2 (01~94)', a2_95_label: '📦 纸箱余料', a2_96_label: '🚛 上一制程未搬运', a2_97_label: '🪣 人工分检', a2_99_label: '🤖 自动分检', a2_98_label: '🔩 分检螺帽',
     saved: '✅ # 个桶号已保存到 #',
     select_location_first: '请先选择储位',
     no_barrels: '请先扫码添加桶号',
@@ -241,7 +241,7 @@ const I18N = {
     delete_title: '🗑 Xóa thùng', delete_placeholder: 'Quét hoặc nhập mã thùng, Enter để xóa',
     delete_confirm_prefix: 'Xác nhận xóa', delete_confirm_suffix: '? Không thể hoàn tác.', confirm_delete: '⚠️ Xác nhận xóa',
     new_barrel: 'Chọn vị trí',
-    a2_storage: '📦 Kho A2 (01~94)', a2_95_label: '📦 Thùng carton dư', a2_96_label: '🧴 Cạnh khu tẩy dầu', a2_97_label: '🪣 Phân loại thủ công', a2_99_label: '🤖 Phân loại tự động', a2_98_label: '🔩 Phân loại đai ốc',
+    a2_storage: '📦 Kho A2 (01~94)', a2_95_label: '📦 Thùng carton dư', a2_96_label: '🚛 Chưa vận chuyển', a2_97_label: '🪣 Phân loại thủ công', a2_99_label: '🤖 Phân loại tự động', a2_98_label: '🔩 Phân loại đai ốc',
     saved: '✅ # mã đã lưu vào #',
     select_location_first: 'Hãy chọn vị trí trước',
     no_barrels: 'Hãy quét thêm mã thùng trước',
@@ -306,6 +306,7 @@ document.getElementById('scanner').addEventListener('keydown', function(e) {
 });
 
 function renderChips() {
+  document.getElementById('scanned-num').textContent = barrels.length;
   const el = document.getElementById('barrel-chips');
   if (!barrels.length) {
     el.innerHTML = '<span class="label" data-i18n="scanned_label">' + t('scanned_label') + '</span>';
@@ -325,6 +326,7 @@ function removeBarrel(idx) {
 
 function clearBarrels() {
   barrels = [];
+  document.getElementById('scanned-num').textContent = '0';
   renderChips();
   selectedLoc = null;
   document.querySelectorAll('#loc-grid .loc-btn').forEach(b => b.classList.remove('selected'));
@@ -341,9 +343,9 @@ function buildLocGrid() {
     const loc = 'A2-' + String(i).padStart(2, '0');
     h += `<button class="loc-btn" data-loc="${loc}" onclick="pickLoc('${loc}', this)">${loc}</button>`;
   }
-  h += '<div class="loc-label">📦 A2-95 | 🧴 A2-96 | 🪣 A2-97 | 🤖 A2-99 | 🔩 A2-98</div>';
+  h += '<div class="loc-label">📦 A2-95 | 🚛 A2-96 | 🪣 A2-97 | 🤖 A2-99 | 🔩 A2-98</div>';
   h += `<button class="loc-btn special" data-loc="纸箱余料" onclick="pickLoc('纸箱余料', this)">${t('a2_95_label')}</button>`;
-  h += `<button class="loc-btn special" data-loc="除油旁边" onclick="pickLoc('除油旁边', this)">${t('a2_96_label')}</button>`;
+  h += `<button class="loc-btn special" data-loc="上一制程未搬运" onclick="pickLoc('上一制程未搬运', this)">${t('a2_96_label')}</button>`;
   h += `<button class="loc-btn special" data-loc="人工分检区" onclick="pickLoc('人工分检区', this)">${t('a2_97_label')}</button>`;
   h += `<button class="loc-btn special" data-loc="自动分检区" onclick="pickLoc('自动分检区', this)">${t('a2_99_label')}</button>`;
   h += `<button class="loc-btn special" data-loc="自动分检螺帽区" onclick="pickLoc('自动分检螺帽区', this)">${t('a2_98_label')}</button>`;
@@ -419,7 +421,7 @@ function renderResults(items) {
     tbody.innerHTML = items.map(d => {
       let rc = '', ld = d.location||'';
       if (ld === '纸箱余料') { rc = 'row-a2n'; ld = '<span class="zone-tag special">📦 '+ld+'</span>'; }
-      else if (ld === '除油旁边') { rc = 'row-a2n'; ld = '<span class="zone-tag special">🧴 '+ld+'</span>'; }
+      else if (ld === '上一制程未搬运') { rc = 'row-a2n'; ld = '<span class="zone-tag special">🚛 '+ld+'</span>'; }
       else if (ld === '人工分检区') { rc = 'row-a2n'; ld = '<span class="zone-tag special">🪣 '+ld+'</span>'; }
       else if (ld === '自动分检区') { rc = 'row-a2d'; ld = '<span class="zone-tag special">🤖 '+ld+'</span>'; }
       else if (ld === '自动分检螺帽区') { rc = 'row-a2n'; ld = '<span class="zone-tag special">🔩 '+ld+'</span>'; }
@@ -476,6 +478,17 @@ document.getElementById('btn-delete-confirm').addEventListener('click', async fu
 
 // ─── Init ───────────────────────────────────────────────────
 document.getElementById('scanner').focus();
+fetchTodayCount();
+
+async function fetchTodayCount() {
+  try {
+    const resp = await fetch(API + '/api/inventory');
+    const data = await resp.json();
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const count = (Array.isArray(data)?data:[]).filter(d => (d.update_time||'').startsWith(today)).length;
+    document.getElementById('today-count').textContent = count;
+  } catch(e) {}
+}
 
 // Quick search
 async function doQuickSearch() {
@@ -503,6 +516,17 @@ document.getElementById('quick-query').addEventListener('keydown', function(e) {
 document.addEventListener('click', function(e) {
   if (!e.target.closest('input') && !e.target.closest('button') && !e.target.closest('.lang-btn') && !e.target.closest('.chip-x')) {
     document.getElementById('scanner').focus();
+fetchTodayCount();
+
+async function fetchTodayCount() {
+  try {
+    const resp = await fetch(API + '/api/inventory');
+    const data = await resp.json();
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const count = (Array.isArray(data)?data:[]).filter(d => (d.update_time||'').startsWith(today)).length;
+    document.getElementById('today-count').textContent = count;
+  } catch(e) {}
+}
   }
 });
 
