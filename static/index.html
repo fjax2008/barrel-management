@@ -19,7 +19,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* Header */
 .header{text-align:center;padding:12px 0 6px}
-.header{position:relative}.today-badge{font-size:12px;color:#1677ff;margin-top:2px;background:#e6f4ff;display:inline-block;padding:2px 10px;border-radius:10px}.header h1{font-size:18px;font-weight:700;color:#1a1a2e}
+.header{position:relative}.header-row{display:flex;align-items:center;gap:8px;justify-content:center}.lock-btn{background:none;border:1.5px solid #d9d9d9;border-radius:8px;padding:4px 6px;font-size:16px;cursor:pointer;touch-action:manipulation;line-height:1}.lock-btn.unlocked{background:#f6ffed;border-color:#52c41a}.lock-status{font-size:11px;color:#52c41a;margin-top:2px}.today-badge{font-size:12px;color:#1677ff;margin-top:2px;background:#e6f4ff;display:inline-block;padding:2px 10px;border-radius:10px}.header h1{font-size:18px;font-weight:700;color:#1a1a2e}
 .lang-switch{position:absolute;top:10px;right:14px;display:flex;gap:4px;z-index:10}
 .lang-btn{background:transparent;border:1px solid #d9d9d9;border-radius:6px;padding:6px 12px;font-size:14px;cursor:pointer;color:#595959;touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-width:40px}
 .lang-btn.active{background:#1677ff;color:#fff;border-color:#1677ff}
@@ -126,7 +126,12 @@ tr.row-a2n{background:#fffbe6}
 
 <div class="container">
   <div class="header">
-    <h1 data-i18n="title">生管桶号管理</h1><div class="today-badge" id="today-badge">📊 今日录入: <span id="today-count">--</span> 桶</div>
+    <div class="header-row">
+      <button class="lock-btn" id="lock-btn" onclick="toggleLock()">🔒</button>
+      <h1 data-i18n="title">生管桶号管理</h1>
+    </div>
+    <div class="today-badge" id="today-badge">📊 今日录入: <span id="today-count">--</span> 桶</div>
+    <div class="lock-status" id="lock-status" style="display:none"></div>
   </div>
 
   <!-- Quick search -->
@@ -274,6 +279,7 @@ function setLang(l) {
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
   buildLocGrid();
   renderChips();
+  updateLockUI();
 }
 
 // ─── Globals ────────────────────────────────────────────────
@@ -295,6 +301,36 @@ function beep() {
     o.frequency.value=800; o.type='sine'; g.gain.value=0.15;
     o.start(); o.stop(ctx.currentTime+0.12);
   } catch(e) {}
+}
+
+// ─── Lock ───────────────────────────────────────────────────
+function isUnlocked() {
+  const d = new Date().toISOString().slice(0,10);
+  return localStorage.getItem('barrel-unlock') === d;
+}
+function updateLockUI() {
+  const unlocked = isUnlocked();
+  const btn = document.getElementById('lock-btn');
+  const st = document.getElementById('lock-status');
+  if (unlocked) {
+    btn.textContent = '🔓'; btn.classList.add('unlocked');
+    st.style.display = 'block'; st.textContent = lang==='zh'?'今日已解锁，免密录入/删除':'Đã mở khóa hôm nay';
+  } else {
+    btn.textContent = '🔒'; btn.classList.remove('unlocked');
+    st.style.display = 'none';
+  }
+}
+function toggleLock() {
+  if (isUnlocked()) { showToast(lang==='zh'?'今日已解锁':'Đã mở khóa hôm nay','success'); return; }
+  const pwd = prompt(lang==='zh'?'请输入解锁密码:':'Nhập mật khẩu:');
+  if (pwd === '520') {
+    const d = new Date().toISOString().slice(0,10);
+    localStorage.setItem('barrel-unlock', d);
+    updateLockUI();
+    showToast(lang==='zh'?'✅ 已解锁，今日免密':'✅ Đã mở khóa, miễn mật khẩu hôm nay','success');
+  } else if (pwd !== null) {
+    showToast(lang==='zh'?'❌ 密码错误':'❌ Sai mật khẩu','error');
+  }
 }
 
 // ─── Scanner ────────────────────────────────────────────────
@@ -375,6 +411,7 @@ function pickLoc(loc, btn) {
 
 // ─── Save ───────────────────────────────────────────────────
 async function confirmSave() {
+  if (!isUnlocked()) { showToast(lang==='zh'?'请先解锁（点左上角🔒）':'Vui lòng mở khóa trước','error'); return; }
   if (!barrels.length) { showToast(t('no_barrels'), 'error'); return; }
   if (!selectedLoc) { showToast(t('select_location_first'), 'error'); return; }
   try {
@@ -477,6 +514,7 @@ document.getElementById('delete-scanner').addEventListener('keydown', async func
   this.value = '';
 });
 document.getElementById('btn-delete-confirm').addEventListener('click', async function() {
+  if (!isUnlocked()) { showToast(lang==='zh'?'请先解锁（点左上角🔒）':'Vui lòng mở khóa trước','error'); return; }
   if (!deleteBarrelNo) return;
   const pwd = document.getElementById('delete-pwd').value;
   if (pwd !== '520') { showToast(t('wrong_password'), 'error'); return; }
@@ -495,6 +533,7 @@ document.getElementById('btn-delete-confirm').addEventListener('click', async fu
 
 // ─── Init ───────────────────────────────────────────────────
 setLang(lang);
+updateLockUI();
 document.getElementById('scanner').focus();
 fetchTodayCount();
 
