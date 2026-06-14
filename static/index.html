@@ -50,7 +50,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* Location Grid */
 .loc-wrap{background:#fff;border-radius:10px;padding:12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
-.loc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:5px;margin-top:6px}
+.loc-grid-wrap{overflow:hidden;max-height:0;transition:max-height .3s ease;margin-top:0}
+.loc-grid-wrap.open{max-height:2000px;margin-top:6px}
+.loc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:5px}
 .loc-label{grid-column:1/-1;font-size:13px;font-weight:600;color:#595959;padding:4px 0 2px}
 .loc-btn{padding:9px 4px;font-size:12px;font-weight:600;border:2px solid #e8e8e8;border-radius:7px;background:#fff;color:#333;cursor:pointer;transition:all .12s;text-align:center}
 .loc-btn:active,.loc-btn.selected{background:#e6f4ff;border-color:#1677ff;color:#1677ff}
@@ -149,12 +151,14 @@ tr.row-a2n{background:#fffbe6}
   </div>
 
   <!-- Location Grid -->
-  <div class="loc-wrap">
+  <div class="loc-wrap" id="loc-wrap">
     <div class="action-row">
       <button class="btn btn-primary" id="btn-confirm" disabled data-i18n="confirm_save">✅ 确认保存</button>
       <button class="btn btn-default" id="btn-clear" data-i18n="clear">✕ 清除</button>
     </div>
-    <div class="loc-grid" id="loc-grid"></div>
+    <div class="loc-grid-wrap" id="loc-grid-wrap">
+      <div class="loc-grid" id="loc-grid"></div>
+    </div>
   </div>
 
   <!-- Query -->
@@ -309,6 +313,12 @@ document.getElementById('scanner').addEventListener('keydown', function(e) {
   this.value = '';
 });
 
+function toggleGrid(show) {
+  const wrap = document.getElementById('loc-grid-wrap');
+  if (show) { wrap.classList.add('open'); }
+  else { wrap.classList.remove('open'); }
+}
+
 function renderChips() {
   if (!barrels.length) {
     document.getElementById('barrel-chips').innerHTML = '<span class="label"></span><span data-i18n="scanned_label">' + t('scanned_label') + '</span>：<span id="scanned-num" style="color:#1677ff;font-weight:700;margin-left:2px">0</span><span data-i18n="unit"> ' + t('unit') + '</span>';
@@ -319,6 +329,7 @@ function renderChips() {
     h += `<span class="barrel-chip">${barrels[i]}<span class="chip-x" onclick="removeBarrel(${i})">✕</span></span>`;
   }
   document.getElementById('barrel-chips').innerHTML = h;
+  toggleGrid(barrels.length > 0);
 }
 
 function removeBarrel(idx) {
@@ -332,6 +343,7 @@ function clearBarrels() {
   selectedLoc = null;
   document.querySelectorAll('#loc-grid .loc-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('btn-confirm').disabled = true;
+  toggleGrid(false);
 }
 
 document.getElementById('btn-clear').addEventListener('click', clearBarrels);
