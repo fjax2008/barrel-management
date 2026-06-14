@@ -222,7 +222,7 @@ const I18N = {
     all_inventory: '🔎 查桶号', export_excel: '📥 导出',
     th_barrel: '桶号', th_location: '当前位置', th_time: '更新时间',
     delete_title: '🗑 删除桶号', delete_placeholder: '扫码或输入桶号，回车确认删除',
-    delete_confirm_prefix: '确认删除', delete_confirm_suffix: '？此操作不可撤销。', confirm_delete: '⚠️ 确认删除',
+    delete_confirm_prefix: '确认删除', delete_confirm_suffix: '？此操作不可撤销。', confirm_delete: '⚠️ 确认删除', wrong_password: '❌ 密码错误',
     new_barrel: '请选择储位',
     a2_storage: '📦 储区 A2 (01~94)', a2_95_label: '📦 纸箱余料', a2_96_label: '🚛 上一制程未搬运', a2_97_label: '🪣 人工分检', a2_99_label: '🤖 自动分检', a2_98_label: '🔩 分检螺帽',
     saved: '✅ # 个桶号已保存到 #',
@@ -246,7 +246,7 @@ const I18N = {
     all_inventory: '🔎 Tra cứu', export_excel: '📥 Xuất',
     th_barrel: 'Mã thùng', th_location: 'Vị trí', th_time: 'Cập nhật',
     delete_title: '🗑 Xóa thùng', delete_placeholder: 'Quét hoặc nhập mã thùng, Enter để xóa',
-    delete_confirm_prefix: 'Xác nhận xóa', delete_confirm_suffix: '? Không thể hoàn tác.', confirm_delete: '⚠️ Xác nhận xóa',
+    delete_confirm_prefix: 'Xác nhận xóa', delete_confirm_suffix: '? Không thể hoàn tác.', confirm_delete: '⚠️ Xác nhận xóa', wrong_password: '❌ Sai mật khẩu',
     new_barrel: 'Chọn vị trí',
     a2_storage: '📦 Kho A2 (01~94)', a2_95_label: '📦 Thùng carton dư', a2_96_label: '🚛 Chưa vận chuyển', a2_97_label: '🪣 Phân loại thủ công', a2_99_label: '🤖 Phân loại tự động', a2_98_label: '🔩 Phân loại đai ốc',
     saved: '✅ # mã đã lưu vào #',
@@ -478,10 +478,13 @@ document.getElementById('delete-scanner').addEventListener('keydown', async func
 });
 document.getElementById('btn-delete-confirm').addEventListener('click', async function() {
   if (!deleteBarrelNo) return;
+  const pwd = document.getElementById('delete-pwd').value;
+  if (pwd !== '520') { showToast(t('wrong_password'), 'error'); return; }
   try {
     const resp = await fetch(API + '/api/barrel/' + encodeURIComponent(deleteBarrelNo), {method:'DELETE'});
     const data = await resp.json();
     beep(); showToast(t('confirm_delete_msg', deleteBarrelNo, data.location||'?'), 'success');
+    document.getElementById('delete-pwd').value = '';
   } catch(e) { showToast(e.message, 'error'); }
   deleteBarrelNo = null;
   document.getElementById('delete-scanner').value = '';
