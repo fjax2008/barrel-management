@@ -229,7 +229,7 @@ const I18N = {
     delete_title: '🗑 删除桶号', delete_placeholder: '扫码或输入桶号，回车确认删除',
     delete_confirm_prefix: '确认删除', delete_confirm_suffix: '？此操作不可撤销。', confirm_delete: '⚠️ 确认删除', wrong_password: '❌ 密码错误',
     new_barrel: '请选择储位',
-    a2_storage: '📦 储区 A2 (01~94)', a2_95_label: '📦 纸箱余料', a2_96_label: '🚛 上一制程未搬运', a2_97_label: '🪣 人工分检', a2_99_label: '🤖 自动分检', a2_98_label: '🔩 分检螺帽',
+    a2_storage: '📦 储区 A2 (01~94)', a2_95_label: '📦 B区纸箱余料', a2_96_label: '🚛 上一制程未搬运', a2_97_label: '🪣 人工分检', a2_99_label: '🤖 自动分检', a2_98_label: '🔩 分检螺帽', a2_new_label: '📦 A区纸箱余料',
     saved: '✅ # 个桶号已保存到 #',
     select_location_first: '请先选择储位',
     no_barrels: '请先扫码添加桶号',
@@ -253,7 +253,7 @@ const I18N = {
     delete_title: '🗑 Xóa thùng', delete_placeholder: 'Quét hoặc nhập mã thùng, Enter để xóa',
     delete_confirm_prefix: 'Xác nhận xóa', delete_confirm_suffix: '? Không thể hoàn tác.', confirm_delete: '⚠️ Xác nhận xóa', wrong_password: '❌ Sai mật khẩu',
     new_barrel: 'Chọn vị trí',
-    a2_storage: '📦 Kho A2 (01~94)', a2_95_label: '📦 Thùng carton dư', a2_96_label: '🚛 Chưa vận chuyển', a2_97_label: '🪣 Phân loại thủ công', a2_99_label: '🤖 Phân loại tự động', a2_98_label: '🔩 Phân loại đai ốc',
+    a2_storage: '📦 Kho A2 (01~94)', a2_95_label: '📦 Thùng carton B', a2_96_label: '🚛 Chưa vận chuyển', a2_97_label: '🪣 Phân loại thủ công', a2_99_label: '🤖 Phân loại tự động', a2_98_label: '🔩 Phân loại đai ốc', a2_new_label: '📦 Thùng carton A',
     saved: '✅ # mã đã lưu vào #',
     select_location_first: 'Hãy chọn vị trí trước',
     no_barrels: 'Hãy quét thêm mã thùng trước',
@@ -393,7 +393,8 @@ function buildLocGrid() {
     h += `<button class="loc-btn" data-loc="${loc}" onclick="pickLoc('${loc}', this)">${loc}</button>`;
   }
   h += '<div class="loc-label">📦 A2-95 | 🚛 A2-96 | 🪣 A2-97 | 🤖 A2-99 | 🔩 A2-98</div>';
-  h += `<button class="loc-btn special" data-loc="纸箱余料" onclick="pickLoc('纸箱余料', this)">${t('a2_95_label')}</button>`;
+  h += `<button class="loc-btn special" data-loc="B区纸箱余料" onclick="pickLoc('B区纸箱余料', this)">${t('a2_95_label')}</button>`;
+  h += `<button class="loc-btn special" data-loc="A区纸箱余料" onclick="pickLoc('A区纸箱余料', this)">${t('a2_new_label')}</button>`;
   h += `<button class="loc-btn special" data-loc="上一制程未搬运" onclick="pickLoc('上一制程未搬运', this)">${t('a2_96_label')}</button>`;
   h += `<button class="loc-btn special" data-loc="人工分检区" onclick="pickLoc('人工分检区', this)">${t('a2_97_label')}</button>`;
   h += `<button class="loc-btn special" data-loc="自动分检区" onclick="pickLoc('自动分检区', this)">${t('a2_99_label')}</button>`;
@@ -471,7 +472,7 @@ function renderResults(items) {
   } else {
     tbody.innerHTML = items.map(d => {
       let rc = '', ld = d.location||'';
-      if (ld === '纸箱余料') { rc = 'row-a2n'; ld = '<span class="zone-tag special">📦 '+ld+'</span>'; }
+      if (ld === 'B区纸箱余料' || ld === 'A区纸箱余料') { rc = 'row-a2n'; ld = '<span class="zone-tag special">📦 '+ld+'</span>'; }
       else if (ld === '上一制程未搬运') { rc = 'row-a2n'; ld = '<span class="zone-tag special">🚛 '+ld+'</span>'; }
       else if (ld === '人工分检区') { rc = 'row-a2n'; ld = '<span class="zone-tag special">🪣 '+ld+'</span>'; }
       else if (ld === '自动分检区') { rc = 'row-a2d'; ld = '<span class="zone-tag special">🤖 '+ld+'</span>'; }
